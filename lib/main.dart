@@ -17,10 +17,38 @@ class LifeOsApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: seed),
-        scaffoldBackgroundColor: const Color(0xFFF7F8FC),
-        cardTheme: const CardThemeData(elevation: 0, margin: EdgeInsets.zero),
-        inputDecorationTheme: const InputDecorationTheme(border: OutlineInputBorder()),
+        colorScheme: ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.light),
+        scaffoldBackgroundColor: const Color(0xFFF6F8FC),
+        canvasColor: const Color(0xFFF6F8FC),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFF6F8FC),
+          foregroundColor: Color(0xFF19243A),
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(color: Color(0xFF19243A), fontSize: 22, fontWeight: FontWeight.w800),
+        ),
+        cardTheme: CardThemeData(
+          elevation: 0,
+          margin: EdgeInsets.zero,
+          color: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: const BorderSide(color: Color(0xFFE8ECF4))),
+        ),
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: Colors.white,
+          indicatorColor: const Color(0xFFE8EEFF),
+          elevation: 0,
+          height: 72,
+          labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(fontSize: 11, fontWeight: states.contains(WidgetState.selected) ? FontWeight.w800 : FontWeight.w500)),
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(backgroundColor: Color(0xFF315FE7), foregroundColor: Colors.white),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE0E6F0))),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE0E6F0))),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF4567D7), width: 1.5)),
+        ),
       ),
       home: const LifeOsShell(),
     );
@@ -66,6 +94,7 @@ class _LifeOsShellState extends State<LifeOsShell> {
   }
 }
 
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.repository, required this.onNavigate});
   final LifeosRepository repository;
@@ -78,90 +107,164 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late Future<Map<String, int>> _summary;
   late Future<List<LifeTask>> _tasks;
+  late Future<List<Idea>> _ideas;
 
   @override
-  void initState() {
-    super.initState();
-    _load();
-  }
+  void initState() { super.initState(); _load(); }
 
   void _load() {
     _summary = widget.repository.getTaskSummary();
     _tasks = widget.repository.getTasks();
+    _ideas = widget.repository.getIdeas();
   }
 
   Future<void> refreshData() async {
     setState(_load);
+    await Future.wait([_summary, _tasks, _ideas]);
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final hour = DateTime.now().hour;
     final greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    final now = DateTime.now();
+    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    final dateLabel = '${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}';
+
     return RefreshIndicator(
       onRefresh: refreshData,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
         children: [
-          Text(greeting, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.black54)),
+          Row(children: [
+            Container(
+              width: 42, height: 42,
+              decoration: BoxDecoration(color: theme.colorScheme.primary.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(14)),
+              child: Icon(Icons.auto_awesome_rounded, color: theme.colorScheme.primary, size: 23),
+            ),
+            const SizedBox(width: 11),
+            const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('LifeOS', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+              Text('YOUR PERSONAL SPACE', style: TextStyle(fontSize: 9, letterSpacing: 1.35, fontWeight: FontWeight.w700, color: Color(0xFF7A8497))),
+            ])),
+            IconButton(
+              tooltip: 'Refresh dashboard',
+              onPressed: refreshData,
+              icon: const Icon(Icons.refresh_rounded),
+              style: IconButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF536176)),
+            ),
+          ]),
+          const SizedBox(height: 25),
+          Text(dateLabel.toUpperCase(), style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 1.2, fontWeight: FontWeight.w700, color: const Color(0xFF7B879A))),
+          const SizedBox(height: 7),
+          Text(greeting, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.9, color: const Color(0xFF19243A))),
           const SizedBox(height: 4),
-          Text('Make today count.', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800)),
+          Text('Make space for what matters.', style: theme.textTheme.bodyLarge?.copyWith(color: const Color(0xFF6F7B8E))),
           const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF315FE7), Color(0xFF2448B8)]),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [BoxShadow(color: const Color(0xFF315FE7).withValues(alpha: 0.18), blurRadius: 22, offset: const Offset(0, 9))],
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                const Expanded(child: Text('A little progress\nevery day.', style: TextStyle(color: Colors.white, fontSize: 23, height: 1.18, fontWeight: FontWeight.w800, letterSpacing: -0.5))),
+                Container(width: 54, height: 54, decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(18)), child: const Icon(Icons.trending_up_rounded, color: Colors.white, size: 29)),
+              ]),
+              const SizedBox(height: 18),
+              FutureBuilder<Map<String, int>>(
+                future: _summary,
+                builder: (context, snapshot) {
+                  final data = snapshot.data ?? const {'total': 0, 'completed': 0, 'open': 0};
+                  final total = data['completed']! + data['open']!;
+                  final progress = total == 0 ? 0.0 : data['completed']! / total;
+                  return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      const Text('YOUR TASK PROGRESS', style: TextStyle(color: Color(0xFFDCE5FF), fontSize: 10, letterSpacing: 1.1, fontWeight: FontWeight.w700)),
+                      Text('${(progress * 100).round()}%', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13)),
+                    ]),
+                    const SizedBox(height: 8),
+                    ClipRRect(borderRadius: BorderRadius.circular(10), child: LinearProgressIndicator(value: progress, minHeight: 7, backgroundColor: Colors.white.withValues(alpha: 0.22), valueColor: const AlwaysStoppedAnimation<Color>(Colors.white))),
+                    const SizedBox(height: 8),
+                    Text(total == 0 ? 'Start with one meaningful task.' : '${data['completed']} of $total tasks completed', style: const TextStyle(color: Color(0xFFE2E9FF), fontSize: 12)),
+                  ]);
+                },
+              ),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text('Your overview', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+            TextButton(onPressed: () => widget.onNavigate(1), child: const Text('View tasks')),
+          ]),
+          const SizedBox(height: 10),
           FutureBuilder<Map<String, int>>(
             future: _summary,
             builder: (context, snapshot) {
               final data = snapshot.data ?? const {'total': 0, 'completed': 0, 'open': 0};
               return Row(children: [
-                Expanded(child: _StatCard(label: 'Open tasks', value: '${data['open']}', icon: Icons.radio_button_unchecked)),
+                Expanded(child: _StatCard(label: 'To do', value: '${data['open']}', icon: Icons.radio_button_unchecked_rounded)),
                 const SizedBox(width: 10),
-                Expanded(child: _StatCard(label: 'Completed', value: '${data['completed']}', icon: Icons.task_alt)),
+                Expanded(child: _StatCard(label: 'Completed', value: '${data['completed']}', icon: Icons.task_alt_rounded)),
+                const SizedBox(width: 10),
+                Expanded(child: FutureBuilder<List<Idea>>(future: _ideas, builder: (context, ideasSnapshot) => _StatCard(label: 'Ideas saved', value: '${ideasSnapshot.data?.length ?? 0}', icon: Icons.lightbulb_outline_rounded))),
               ]);
             },
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 24),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('Today’s focus', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-            TextButton(onPressed: () => widget.onNavigate(1), child: const Text('All tasks')),
+            Text('Today’s focus', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+            TextButton(onPressed: () => widget.onNavigate(1), child: const Text('See all')),
           ]),
+          const SizedBox(height: 8),
           FutureBuilder<List<LifeTask>>(
             future: _tasks,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) return const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()));
-              final tasks = (snapshot.data ?? []).where((task) => !task.isComplete).take(4).toList();
-              if (tasks.isEmpty) return const _EmptyState(icon: Icons.celebration_outlined, title: 'A clear space to begin', message: 'Add a task to give today a direction.');
-              return Column(children: tasks.map((task) => Card(
-                child: ListTile(
-                  leading: const Icon(Icons.circle_outlined),
-                  title: Text(task.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: task.notes.isEmpty ? null : Text(task.notes, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  trailing: const Icon(Icons.chevron_right),
+              final tasks = (snapshot.data ?? []).where((task) => !task.isComplete).take(3).toList();
+              if (tasks.isEmpty) return const _EmptyState(icon: Icons.celebration_outlined, title: 'A clear space to begin', message: 'Add one task to give today a direction.');
+              return Column(children: tasks.map((task) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Card(child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                  leading: Container(width: 38, height: 38, decoration: BoxDecoration(color: const Color(0xFFEAF0FF), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.circle_outlined, color: Color(0xFF315FE7), size: 21)),
+                  title: Text(task.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  subtitle: Text(task.dueAt == null ? (task.notes.isEmpty ? 'Ready when you are' : task.notes) : 'Due ${task.dueAt!.day}/${task.dueAt!.month}/${task.dueAt!.year}', maxLines: 1, overflow: TextOverflow.ellipsis),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFF7B879A)),
                   onTap: () => widget.onNavigate(1),
-                ),
+                )),
               )).toList());
             },
           ),
-          const SizedBox(height: 20),
-          Text('Quick capture', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
+          Text('Quick capture', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+          const SizedBox(height: 4),
+          Text('Catch the thought. Keep the momentum.', style: theme.textTheme.bodyMedium?.copyWith(color: const Color(0xFF778397))),
+          const SizedBox(height: 12),
           Row(children: [
-            Expanded(child: _QuickAction(icon: Icons.add_task, label: 'New task', onTap: () => widget.onNavigate(1))),
+            Expanded(child: _QuickAction(icon: Icons.add_task_rounded, label: 'New task', onTap: () => widget.onNavigate(1))),
             const SizedBox(width: 10),
-            Expanded(child: _QuickAction(icon: Icons.lightbulb_outline, label: 'Capture idea', onTap: () => widget.onNavigate(2))),
+            Expanded(child: _QuickAction(icon: Icons.lightbulb_outline_rounded, label: 'Capture idea', onTap: () => widget.onNavigate(2))),
           ]),
-          const SizedBox(height: 22),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Icon(Icons.auto_awesome_outlined, size: 28),
-                const SizedBox(width: 12),
-                const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Your personal command center', style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 4),
-                  Text('Capture ideas quickly, plan your work, and build a record of what you accomplish. More insights and AI tools will arrive in later phases.'),
-                ])),
-              ]),
-            ),
+          const SizedBox(height: 10),
+          _QuickAction(icon: Icons.calendar_month_rounded, label: 'Plan an appointment', onTap: () => widget.onNavigate(3), fullWidth: true),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: const Color(0xFFEFF3FF), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFDCE5FF))),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Container(width: 38, height: 38, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF315FE7))),
+              const SizedBox(width: 12),
+              const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('One space for your life and ideas', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF24365D))),
+                SizedBox(height: 5),
+                Text('Plan your day, save creative sparks, and keep track of the work you finish.', style: TextStyle(color: Color(0xFF5D6D8A), height: 1.4, fontSize: 13)),
+              ])),
+            ]),
           ),
         ],
       ),
@@ -423,18 +526,52 @@ class _TaskDialogState extends State<_TaskDialog> {
   );
 }
 
+
 class _StatCard extends StatelessWidget {
   const _StatCard({required this.label, required this.value, required this.icon});
-  final String label; final String value; final IconData icon;
+  final String label;
+  final String value;
+  final IconData icon;
+
   @override
-  Widget build(BuildContext context) => Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon, size: 24), const SizedBox(height: 12), Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)), Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.black54))])));
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(12, 14, 8, 14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(width: 32, height: 32, decoration: BoxDecoration(color: const Color(0xFFEAF0FF), borderRadius: BorderRadius.circular(10)), child: Icon(icon, size: 18, color: const Color(0xFF315FE7))),
+        const SizedBox(height: 12),
+        Text(value, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5, color: const Color(0xFF19243A))),
+        const SizedBox(height: 2),
+        Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: const Color(0xFF758197), fontWeight: FontWeight.w600)),
+      ]),
+    ),
+  );
 }
 
+
 class _QuickAction extends StatelessWidget {
-  const _QuickAction({required this.icon, required this.label, required this.onTap});
-  final IconData icon; final String label; final VoidCallback onTap;
+  const _QuickAction({required this.icon, required this.label, required this.onTap, this.fullWidth = false});
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool fullWidth;
+
   @override
-  Widget build(BuildContext context) => Card(child: InkWell(borderRadius: BorderRadius.circular(16), onTap: onTap, child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [Icon(icon), const SizedBox(width: 10), Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)))]))));
+  Widget build(BuildContext context) => Card(
+    child: InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+        child: Row(children: [
+          Container(width: 38, height: 38, decoration: BoxDecoration(color: const Color(0xFFEAF0FF), borderRadius: BorderRadius.circular(12)), child: Icon(icon, color: const Color(0xFF315FE7), size: 21)),
+          const SizedBox(width: 11),
+          Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF29354B)))),
+          const Icon(Icons.arrow_forward_rounded, size: 17, color: Color(0xFF8792A5)),
+        ]),
+      ),
+    ),
+  );
 }
 
 class _EmptyState extends StatelessWidget {
