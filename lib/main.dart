@@ -251,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(child: _QuickAction(icon: Icons.lightbulb_outline_rounded, label: 'Capture idea', onTap: () => widget.onNavigate(2))),
           ]),
           const SizedBox(height: 10),
-          _QuickAction(icon: Icons.calendar_month_rounded, label: 'Plan an appointment', onTap: () => widget.onNavigate(3), fullWidth: true),
+          _QuickAction(icon: Icons.calendar_month_rounded, label: 'Plan an appointment', onTap: () => widget.onNavigate(3)),
           const SizedBox(height: 18),
           Container(
             padding: const EdgeInsets.all(16),
@@ -550,11 +550,10 @@ class _StatCard extends StatelessWidget {
 
 
 class _QuickAction extends StatelessWidget {
-  const _QuickAction({required this.icon, required this.label, required this.onTap, this.fullWidth = false});
+  const _QuickAction({required this.icon, required this.label, required this.onTap});
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  final bool fullWidth;
 
   @override
   Widget build(BuildContext context) => Card(
