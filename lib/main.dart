@@ -251,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(child: _QuickAction(icon: Icons.lightbulb_outline_rounded, label: 'Capture idea', onTap: () => widget.onNavigate(2))),
           ]),
           const SizedBox(height: 10),
-          _QuickAction(icon: Icons.calendar_month_rounded, label: 'Plan an appointment', onTap: () => widget.onNavigate(3)),
+          _QuickAction(icon: Icons.calendar_month_rounded, label: 'Open calendar', onTap: () => widget.onNavigate(3)),
           const SizedBox(height: 18),
           Container(
             padding: const EdgeInsets.all(16),
