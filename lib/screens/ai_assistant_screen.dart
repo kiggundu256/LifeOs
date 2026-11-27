@@ -29,16 +29,14 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
       const SizedBox(height:16),FilledButton(onPressed:(){if(key.text.trim().isEmpty&&!current.hasApiKey){_toast('Enter an API key.');return;}Navigator.pop(context,true);},child:const Text('Save provider settings')),
       if(current.hasApiKey)TextButton(onPressed:()async{await _service.clearApiKey();if(context.mounted)Navigator.pop(context,true);},child:const Text('Remove saved API key')),
     ]))));
-    if(saved==true){try{if(key.text.trim().isNotEmpty){await _service.saveConfig(endpoint:endpoint.text,model:model.text,apiKey:key.text);}else{final stored=await _service.getConfig();await _service.saveConfig(endpoint:endpoint.text,model:model.text,apiKey:await _readExistingKeyUnavailable(stored));}}catch(e){_toast('Settings not saved: $e');}}
-    // Endpoint/model edits without replacing a key are handled by keeping the existing secure key.
+    if(saved==true){try{await _service.saveConfig(endpoint:endpoint.text,model:model.text,apiKey:key.text);_toast('AI provider settings saved securely.');}catch(e){_toast('Settings not saved: $e');}}
     await _loadConfig();endpoint.dispose();model.dispose();key.dispose();
   }
-  Future<String> _readExistingKeyUnavailable(AiAssistantConfig config)async=>throw StateError('To change the endpoint or model, re-enter your API key.');
 
   Future<void> _send()async{
     final text=_input.text.trim();if(text.isEmpty||_sending)return;
-    final config=_config??await _service.getConfig();
-    if(!config.hasApiKey){await _settings();final updated=await _service.getConfig();if(!updated.hasApiKey)return;}
+    var config=_config??await _service.getConfig();
+    if(!config.hasApiKey){await _settings();config=await _service.getConfig();if(!config.hasApiKey)return;}
     setState((){_messages.add(_Message('user',text));_input.clear();_sending=true;});
     _jumpToBottom();
     try{
@@ -58,17 +56,16 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
     ]),
     body:Column(children:[
       if(_config?.hasApiKey!=true)Container(width:double.infinity,margin:const EdgeInsets.fromLTRB(16,4,16,8),padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:const Color(0xFFEAF0FF),borderRadius:BorderRadius.circular(16)),child:Row(children:[const Icon(Icons.link,color:Color(0xFF315FE7)),const SizedBox(width:10),const Expanded(child:Text('Connect an AI provider to start chatting.',style:TextStyle(fontWeight:FontWeight.w600))),TextButton(onPressed:_settings,child:const Text('Connect'))])),
-      Expanded(child:ListView.builder(controller:_scroll,padding:const EdgeInsets.fromLTRB(16,12,16,18),itemCount:_messages.length+( _sending?1:0),itemBuilder:(context,index){
+      Expanded(child:ListView.builder(controller:_scroll,padding:const EdgeInsets.fromLTRB(16,12,16,18),itemCount:_messages.length+(_sending?1:0),itemBuilder:(context,index){
         if(index==_messages.length)return const Align(alignment:Alignment.centerLeft,child:Padding(padding:EdgeInsets.all(12),child:SizedBox(width:22,height:22,child:CircularProgressIndicator(strokeWidth:2))));
         final m=_messages[index],mine=m.role=='user';
         return Align(alignment:mine?Alignment.centerRight:Alignment.centerLeft,child:Container(constraints:const BoxConstraints(maxWidth:340),margin:const EdgeInsets.only(bottom:12),padding:const EdgeInsets.symmetric(horizontal:15,vertical:12),decoration:BoxDecoration(color:mine?const Color(0xFF315FE7):Colors.white,borderRadius:BorderRadius.circular(18),border:mine?null:Border.all(color:const Color(0xFFE8ECF4))),child:SelectableText(m.text,style:TextStyle(color:mine?Colors.white:const Color(0xFF253149),height:1.4))));
       })),
       Container(padding:const EdgeInsets.fromLTRB(14,8,14,14),decoration:const BoxDecoration(color:Colors.white,border:Border(top:BorderSide(color:Color(0xFFE8ECF4)))),child:Column(children:[
         Row(children:[Switch(value:_includeContext,onChanged:(v)=>setState(()=>_includeContext=v)),const Expanded(child:Text('Use my LifeOS context',style:TextStyle(fontWeight:FontWeight.w600))),IconButton(tooltip:'What gets shared?',onPressed:()=>showDialog(context:context,builder:(context)=>AlertDialog(title:const Text('LifeOS context sharing'),content:const Text('When enabled, a limited snapshot of your open tasks, recent Second Brain notes, projects and inbox captures is sent to your configured AI provider with your message. It is off by default. Attachments and API keys are not included.'),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('Got it'))])),icon:const Icon(Icons.info_outline,size:20)]),
-        Row(crossAxisAlignment:CrossAxisAlignment.end,children:[Expanded(child:TextField(controller:_input,minLines:1,maxLines:5,textCapitalization:TextCapitalization.sentences,onSubmitted:(_)=>_send(),decoration:const InputDecoration(hintText:'Ask LifeOS AI…',filled:true,fillColor:Color(0xFFF6F8FC),border:OutlineInputBorder(borderSide:BorderSide.none,borderRadius:BorderRadius.all(Radius.circular(18)))))),const SizedBox(width:8),IconButton.filled(onPressed:_sending?_nullSend:_send,style:IconButton.styleFrom(backgroundColor:const Color(0xFF315FE7),foregroundColor:Colors.white),icon:Icon(_sending?Icons.hourglass_top:Icons.send_rounded))]),
+        Row(crossAxisAlignment:CrossAxisAlignment.end,children:[Expanded(child:TextField(controller:_input,minLines:1,maxLines:5,textCapitalization:TextCapitalization.sentences,onSubmitted:(_)=>_send(),decoration:const InputDecoration(hintText:'Ask LifeOS AI…',filled:true,fillColor:Color(0xFFF6F8FC),border:OutlineInputBorder(borderSide:BorderSide.none,borderRadius:BorderRadius.all(Radius.circular(18)))))),const SizedBox(width:8),IconButton.filled(onPressed:_sending?null:_send,style:IconButton.styleFrom(backgroundColor:const Color(0xFF315FE7),foregroundColor:Colors.white),icon:Icon(_sending?Icons.hourglass_top:Icons.send_rounded))]),
       ])),
     ]),
   );
-  VoidCallback? get _nullSend=>null;
 }
 class _Message{const _Message(this.role,this.text);final String role,text;}
