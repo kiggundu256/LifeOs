@@ -260,7 +260,7 @@ class _EventEditorState extends State<_EventEditor> {
   Future<void> pick(bool isStart) async {
     final old=isStart?start:(end??start.add(const Duration(hours:1)));
     final date=await showDatePicker(context:context,initialDate:old,firstDate:DateTime(2020),lastDate:DateTime(2100)); if(date==null||!mounted)return;
-    final time=await showTimePicker(context:context,initialTime:TimeOfDay.fromDateTime(old)); if(time==null)return;
+    final time=await showTimePicker(context:context,initialTime:TimeOfDay.fromDateTime(old)); if(time==null||!mounted)return;
     setState((){
       final value=DateTime(date.year,date.month,date.day,time.hour,time.minute);
       if(isStart){start=value;if(end!=null&&end!.isBefore(start))end=null;}else{end=value;}
