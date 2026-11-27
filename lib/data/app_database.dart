@@ -12,7 +12,7 @@ class AppDatabase {
     final dbPath = await getDatabasesPath();
     _database = await openDatabase(
       p.join(dbPath, 'lifeos.db'),
-      version: 1,
+      version: 2,
       onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: (db, version) async {
         await db.execute('''
@@ -54,9 +54,30 @@ class AppDatabase {
         await db.execute('CREATE INDEX idx_tasks_status ON tasks(is_complete, is_archived)');
         await db.execute('CREATE INDEX idx_ideas_archived ON ideas(is_archived)');
         await db.execute('CREATE INDEX idx_events_starts ON events(starts_at)');
+        await db.execute('''
+          CREATE TABLE task_completion_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER NOT NULL,
+            task_title TEXT NOT NULL,
+            action TEXT NOT NULL CHECK(action IN ('completed', 'reopened')),
+            occurred_at INTEGER NOT NULL
+          )
+        ''');
+        await db.execute('CREATE INDEX idx_task_completion_history_date ON task_completion_history(occurred_at)');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        // Add future schema migrations here; never drop user data during upgrades.
+        if (oldVersion < 2) {
+          await db.execute('''
+          CREATE TABLE task_completion_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER NOT NULL,
+            task_title TEXT NOT NULL,
+            action TEXT NOT NULL CHECK(action IN ('completed', 'reopened')),
+            occurred_at INTEGER NOT NULL
+          )
+          ''');
+          await db.execute('CREATE INDEX idx_task_completion_history_date ON task_completion_history(occurred_at)');
+        }
       },
     );
     return _database!;
