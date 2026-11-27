@@ -31,13 +31,53 @@ class PlannerScreenState extends State<PlannerScreen> {
   DateTime get _to => _from.add(Duration(days: view == _View.month ? 42 : view == _View.week ? 7 : 1));
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() { super.initState(); _load(); _syncReminders(); }
   void _load() {
     future = Future.wait([
       widget.repository.getTasksDueBetween(_from, _to.add(const Duration(days: 90))),
       widget.repository.getEvents(includeArchived: true, from: _showArchived ? null : _from.subtract(const Duration(days: 370)), to: _showArchived ? null : _to.add(const Duration(days: 90))),
     ]).then((v) => _PlannerData(v[0] as List<LifeTask>, v[1] as List<Map<String, Object?>>));
   }
+  Future<void> _syncReminders() async {
+    try {
+      final now = DateTime.now();
+      final events = await widget.repository.getEvents(from: now.subtract(const Duration(days: 370)), to: now.add(const Duration(days: 90)));
+      for (final event in events) {
+        final reminder = (event['reminder_minutes'] as int?) ?? 0;
+        if (reminder == 0) continue;
+        final id = event['id'] as int;
+        final start = DateTime.fromMillisecondsSinceEpoch(event['starts_at'] as int);
+        final dates = PlannerRecurrence.occurrences(
+          startsAt: start,
+          rule: event['recurrence_rule'] as String?,
+          from: now,
+          to: now.add(const Duration(days: 90)),
+          limit: 90,
+        );
+        for (var index = 0; index < dates.length; index++) {
+          await ReminderService.instance.schedule(
+            id: id * 100 + index + 1,
+            title: event['title'] as String,
+            body: 'Starts in $reminder minutes',
+            at: dates[index].subtract(Duration(minutes: reminder)),
+          );
+        }
+      }
+      final tasks = await widget.repository.getTasks();
+      for (final task in tasks) {
+        if (task.isComplete || task.reminderAt == null) continue;
+        await ReminderService.instance.schedule(
+          id: 1000000000 + task.id,
+          title: task.title,
+          body: 'Task reminder',
+          at: task.reminderAt!,
+        );
+      }
+    } catch (_) {
+      // Planner data remains available even if notification permission is unavailable.
+    }
+  }
+
   Future<void> _refresh() async { setState(_load); await future; }
   Future<void> refreshData() => _refresh();
   void _navigate(int amount) => setState(() {
