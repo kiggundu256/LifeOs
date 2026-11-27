@@ -8,7 +8,7 @@ A local-first Flutter foundation for a private personal productivity and creativ
 - SQLite database stored in the app's private database directory.
 - Tasks: create, edit, complete/uncomplete, search, archive/restore, and delete.
 - Ideas: capture, edit, search, archive/restore, and delete.
-- Calendar: create and list appointments, with a basic daily/weekly/monthly recurrence rule stored for future recurrence handling.
+- Planner: day, week, and month views; task deadlines; event creation, editing, archiving and deletion; daily, weekly, and monthly recurrence expansion; and scheduled local reminders.
 - Database constraints and indexes, plus a versioned schema migration hook.
 - Model mapping tests.
 
@@ -43,17 +43,20 @@ The app includes 7-, 30-, 90-day and all-history views; completion and reopening
 
 ## Next product milestones
 
-1. Add a Performance & Growth screen with daily and weekly completion charts.
-2. Complete calendar recurrence generation and event editing, archiving, and deletion.
-3. Expand the idea vault into a searchable Second Brain with private attachments.
-4. Add the Projects workspace and global Quick Capture.
-5. Add reminders, notifications, and Focus Guard.
-6. Introduce the AI assistant with explicit privacy controls and local-first defaults.
+1. Expand Second Brain into a searchable vault with private attachments.
+2. Add the Projects workspace and global Quick Capture.
+3. Build Focus Guard and device usage controls.
+4. Introduce the AI assistant with explicit privacy controls and local-first defaults.
+
+## Planner and reminder behavior
+
+- Planner recurrence is expanded locally for daily, weekly, and monthly events; monthly schedules retain their original day-of-month where possible.
+- Task reminders and event reminders are scheduled as Android local notifications and are configured to be restored after device reboot.
+- Android notification permission is requested when a reminder is first scheduled. Delivery time can still be affected by device battery restrictions and notification settings.
 
 ## Important scope notes
 
-- The recurrence rule is saved, but recurring event occurrence generation is not implemented yet.
-- Attachments, voice/image capture, notifications, AI, Performance & Growth analytics, and Focus Guard are planned follow-on work.
+- Attachments, voice/image capture, AI, and Focus Guard remain planned follow-on work.
 - SQLite database contents are app-private and local. This starter does not send user data to a server.
 - Flutter's Android build and tests must be run with an installed Flutter SDK. The authoring environment used to prepare this starter did not have Flutter or Dart installed, so those commands have not been executed here.
 
