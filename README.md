@@ -59,7 +59,7 @@ The app includes 7-, 30-, 90-day and all-history views; completion and reopening
 
 - Attachments, voice/image capture, AI, and Focus Guard remain planned follow-on work.
 - SQLite database contents are app-private and local. This starter does not send user data to a server.
-- Flutter's Android build and tests must be run with an installed Flutter SDK. The authoring environment used to prepare this starter did not have Flutter or Dart installed, so those commands have not been executed here.
+- The GitHub Actions workflow runs Dart analysis, unit tests, and a release APK build on every pull request and main-branch update.
 
 ## Suggested next steps
 
@@ -70,9 +70,9 @@ The app includes 7-, 30-, 90-day and all-history views; completion and reopening
 
 ## Build an APK using GitHub Actions (no local Flutter installation needed)
 
-1. Create a new GitHub repository and upload the contents of this folder to its `main` branch.
-2. Open the repository's **Actions** tab and select **Build LifeOS Android APK** (or wait for the push-triggered build).
-3. When the workflow finishes successfully, open that run and download the `lifeos-debug-apk` artifact.
-4. Extract the downloaded artifact ZIP on your phone or computer; it contains `app-debug.apk`. Transfer it to your Android phone and install it. Android may ask you to allow installs from that source.
+1. Open this repository's **Actions** tab.
+2. Open the latest successful **LifeOS Android quality checks and APK** run.
+3. Download the `LifeOS-Android-APK` artifact and extract `app-release.apk`.
+4. Transfer the APK to your Android phone and install it. Android may ask you to allow installs from that source.
 
-This is an unsigned release APK for personal testing, not a Play Store release. The workflow runs Flutter tests before building; if tests or compilation fail, the workflow will report the errors instead of producing an APK.
+This is a personal-use release APK, not a Play Store production-signed build. The workflow runs Flutter tests before building; if tests or compilation fail, the workflow will report the errors instead of producing an APK.
