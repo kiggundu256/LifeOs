@@ -74,7 +74,7 @@ void main() {
   if (settingsGradle.existsSync()) {
     var settings = settingsGradle.readAsStringSync();
     if (!settings.contains(mavenMirror)) {
-      settings = settings.replaceFirst('repositories {', 'repositories {\\n        $mavenMirror');
+      settings = settings.replaceFirst('repositories {', 'repositories {\n        $mavenMirror');
       settingsGradle.writeAsStringSync(settings);
     }
   }
@@ -82,7 +82,7 @@ void main() {
   if (rootGradle.existsSync()) {
     var root = rootGradle.readAsStringSync();
     if (!root.contains(mavenMirror)) {
-      root = root.replaceFirst('repositories {', 'repositories {\\n        $mavenMirror');
+      root = root.replaceFirst('repositories {', 'repositories {\n        $mavenMirror');
       rootGradle.writeAsStringSync(root);
     }
   }
