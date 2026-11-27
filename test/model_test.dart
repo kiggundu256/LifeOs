@@ -55,10 +55,7 @@ void main() {
     expect(idea.body, contains('same footage'));
     expect(idea.isArchived, isTrue);
   });
-}
-
-
-group('TaskCompletionRecord.fromMap', () {
+  group('TaskCompletionRecord.fromMap', () {
   test('maps a completed task activity', () {
     final occurred = DateTime(2026, 11, 27, 9).millisecondsSinceEpoch;
     final record = TaskCompletionRecord.fromMap({'id': 4, 'task_id': 12, 'task_title': 'Finish LifeOS', 'action': 'completed', 'occurred_at': occurred});
@@ -68,4 +65,5 @@ group('TaskCompletionRecord.fromMap', () {
     expect(record.isCompletion, isTrue);
     expect(record.occurredAt, DateTime.fromMillisecondsSinceEpoch(occurred));
   });
-});
+  });
+}
