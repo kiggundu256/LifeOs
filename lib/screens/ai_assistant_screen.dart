@@ -27,7 +27,7 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
       const SizedBox(height:10),TextField(controller:model,decoration:const InputDecoration(labelText:'Model name',hintText:'gpt-4o-mini')),
       const SizedBox(height:10),TextField(controller:key,obscureText:true,autocorrect:false,enableSuggestions:false,decoration:InputDecoration(labelText:current.hasApiKey?'Replace API key':'API key',hintText:current.hasApiKey?'Saved securely; leave blank to keep it':'Paste your provider API key')),
       const SizedBox(height:16),FilledButton(onPressed:(){if(key.text.trim().isEmpty&&!current.hasApiKey){_toast('Enter an API key.');return;}Navigator.pop(context,true);},child:const Text('Save provider settings')),
-      if(current.hasApiKey)TextButton(onPressed:()async{await _service.clearApiKey();if(context.mounted)Navigator.pop(context,true);},child:const Text('Remove saved API key')),
+      if(current.hasApiKey)TextButton(onPressed:()async{await _service.clearApiKey();if(context.mounted)Navigator.pop(context,false);},child:const Text('Remove saved API key')),
     ]))));
     if(saved==true){try{await _service.saveConfig(endpoint:endpoint.text,model:model.text,apiKey:key.text);_toast('AI provider settings saved securely.');}catch(e){_toast('Settings not saved: $e');}}
     await _loadConfig();endpoint.dispose();model.dispose();key.dispose();
