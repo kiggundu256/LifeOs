@@ -1,6 +1,7 @@
 import '../data/app_database.dart';
 import '../models/idea.dart';
 import '../models/life_task.dart';
+import '../models/task_completion_record.dart';
 
 class LifeosRepository {
   LifeosRepository({AppDatabase? database}) : _database = database ?? AppDatabase.instance;
@@ -51,8 +52,26 @@ class LifeosRepository {
 
   Future<void> setTaskComplete(int id, bool complete) async {
     final db = await _database.database;
-    final changed = await db.update('tasks', {'is_complete': complete ? 1 : 0, 'updated_at': _now()}, where: 'id = ?', whereArgs: [id]);
-    if (changed == 0) throw StateError('Task $id no longer exists.');
+    await db.transaction((txn) async {
+      final rows = await txn.query('tasks', columns: ['title', 'is_complete'], where: 'id = ?', whereArgs: [id], limit: 1);
+      if (rows.isEmpty) throw StateError('Task $id no longer exists.');
+      final row = rows.single;
+      final wasComplete = (row['is_complete'] as int) == 1;
+      if (wasComplete == complete) return;
+      final now = _now();
+      await txn.update('tasks', {'is_complete': complete ? 1 : 0, 'updated_at': now}, where: 'id = ?', whereArgs: [id]);
+      await txn.insert('task_completion_history', {'task_id': id, 'task_title': row['title'] as String, 'action': complete ? 'completed' : 'reopened', 'occurred_at': now});
+    });
+  }
+
+  Future<List<TaskCompletionRecord>> getTaskCompletionHistory({DateTime? from, DateTime? to}) async {
+    final db = await _database.database;
+    final where = <String>[];
+    final args = <Object?>[];
+    if (from != null) { where.add('occurred_at >= ?'); args.add(from.millisecondsSinceEpoch); }
+    if (to != null) { where.add('occurred_at < ?'); args.add(to.millisecondsSinceEpoch); }
+    final rows = await db.query('task_completion_history', where: where.isEmpty ? null : where.join(' AND '), whereArgs: args, orderBy: 'occurred_at DESC, id DESC');
+    return rows.map(TaskCompletionRecord.fromMap).toList(growable: false);
   }
 
   Future<void> archiveTask(int id, bool archived) async {
