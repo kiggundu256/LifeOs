@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import '../models/brain_attachment.dart';
@@ -73,7 +71,7 @@ class _BrainVaultScreenState extends State<BrainVaultScreen> {
         TextField(controller: tags, decoration: const InputDecoration(labelText: 'Tags', hintText: 'work, ideas, learning (comma separated)')),
         const SizedBox(height: 12),
         DropdownButtonFormField<int?>(
-          value: folder, decoration: const InputDecoration(labelText: 'Folder'),
+          initialValue: folder, decoration: const InputDecoration(labelText: 'Folder'),
           items: [const DropdownMenuItem<int?>(value: null, child: Text('Unfiled')), ...folders.map((f) => DropdownMenuItem<int?>(value: f['id'] as int, child: Text(f['name'] as String)))],
           onChanged: (value) => setDialogState(() => folder = value),
         ),
@@ -175,7 +173,7 @@ class _BrainVaultScreenState extends State<BrainVaultScreen> {
           future: _tags, builder: (context, snapshot) {
             final tags = snapshot.data ?? [];
             return DropdownButtonFormField<int?>(
-              value: _tagId, isExpanded: true, decoration: const InputDecoration(labelText: 'Filter by tag', contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+              initialValue: _tagId, isExpanded: true, decoration: const InputDecoration(labelText: 'Filter by tag', contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
               items: [const DropdownMenuItem<int?>(value: null, child: Text('Every tag')), ...tags.map((tag) => DropdownMenuItem<int?>(value: tag['id'] as int, child: Text('#${tag['name']}')))],
               onChanged: (value) => setState(() { _tagId = value; _refresh(); }),
             );
