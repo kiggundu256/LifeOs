@@ -1,6 +1,7 @@
 import '../data/app_database.dart';
 import '../models/idea.dart';
 import '../models/life_task.dart';
+import '../models/task_completion_record.dart';
 
 class LifeosRepository {
   LifeosRepository({AppDatabase? database}) : _database = database ?? AppDatabase.instance;
@@ -63,13 +64,14 @@ class LifeosRepository {
     });
   }
 
-  Future<List<Map<String, Object?>>> getTaskCompletionHistory({DateTime? from, DateTime? to}) async {
+  Future<List<TaskCompletionRecord>> getTaskCompletionHistory({DateTime? from, DateTime? to}) async {
     final db = await _database.database;
     final where = <String>[];
     final args = <Object?>[];
     if (from != null) { where.add('occurred_at >= ?'); args.add(from.millisecondsSinceEpoch); }
     if (to != null) { where.add('occurred_at < ?'); args.add(to.millisecondsSinceEpoch); }
-    return db.query('task_completion_history', where: where.isEmpty ? null : where.join(' AND '), whereArgs: args, orderBy: 'occurred_at DESC, id DESC');
+    final rows = await db.query('task_completion_history', where: where.isEmpty ? null : where.join(' AND '), whereArgs: args, orderBy: 'occurred_at DESC, id DESC');
+    return rows.map(TaskCompletionRecord.fromMap).toList(growable: false);
   }
 
   Future<void> archiveTask(int id, bool archived) async {
