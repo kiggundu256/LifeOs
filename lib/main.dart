@@ -258,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(child: _QuickAction(icon: Icons.lightbulb_outline_rounded, label: 'Capture idea', onTap: () => widget.onNavigate(2))),
           ]),
           const SizedBox(height: 10),
-          _QuickAction(icon: Icons.calendar_month_rounded, label: 'Open calendar', onTap: () => widget.onNavigate(3)),
+          _QuickAction(icon: Icons.calendar_month_rounded, label: 'Open Planner', onTap: () => widget.onNavigate(3)),
           const SizedBox(height: 18),
           Container(
             padding: const EdgeInsets.all(16),
@@ -355,7 +355,15 @@ class _TasksScreenState extends State<TasksScreen> {
             subtitle: task.notes.isEmpty ? null : Text(task.notes, maxLines: 2, overflow: TextOverflow.ellipsis),
             trailing: PopupMenuButton<String>(onSelected: (action) async {
               if (action == 'edit') await _editTask(task);
-              if (action == 'archive') { await widget.repository.archiveTask(task.id, !_showArchived); await ReminderService.instance.cancelTask(task.id); if (mounted) setState(_load); }
+              if (action == 'archive') {
+                await widget.repository.archiveTask(task.id, !_showArchived);
+                if (_showArchived && task.reminderAt != null && !task.isComplete) {
+                  await ReminderService.instance.schedule(id: 1000000000 + task.id, title: task.title, body: 'Task reminder', at: task.reminderAt!);
+                } else {
+                  await ReminderService.instance.cancelTask(task.id);
+                }
+                if (mounted) setState(_load);
+              }
               if (action == 'delete') await _delete(task);
             }, itemBuilder: (_) => [
               if (!_showArchived) const PopupMenuItem(value: 'edit', child: Text('Edit')),
