@@ -27,6 +27,8 @@ jobs:
           flutter-version: "3.35.4"
           channel: stable
           cache: true
+      - name: Generate Android platform files
+        run: flutter create --platforms=android --project-name lifeos .
       - name: Install dependencies
         run: flutter pub get
       - name: Analyze Dart code
