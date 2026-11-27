@@ -203,10 +203,10 @@ class _PlannerScreenState extends State<PlannerScreen> {
       title:Text(event['title'] as String,style:const TextStyle(fontWeight:FontWeight.w700)),
       subtitle:Text('${_time(item.start)}${item.end==null ? '' : ' – ${_time(item.end!)}'}${reminder==0 ? '' : ' · Reminder $reminder min before'}'),
       onTap:()=>_edit(event),
-      trailing:PopupMenuButton<String>(onSelected:(v)=>_eventAction(v,event),itemBuilder:(_)=>const [
-        PopupMenuItem(value:'edit',child:Text('Edit event')),
+      trailing:PopupMenuButton<String>(onSelected:(v)=>_eventAction(v,event),itemBuilder:(_)=>[
+        const PopupMenuItem(value:'edit',child:Text('Edit event')),
         PopupMenuItem(value:((event['is_archived'] as int?)??0)==1?'restore':'archive',child:Text(((event['is_archived'] as int?)??0)==1?'Restore':'Archive')),
-        PopupMenuItem(value:'delete',child:Text('Delete')),
+        const PopupMenuItem(value:'delete',child:Text('Delete')),
       ]),
     ));
   }
