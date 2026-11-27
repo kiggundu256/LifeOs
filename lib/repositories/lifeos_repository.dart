@@ -3,6 +3,7 @@ import '../models/idea.dart';
 import '../models/life_task.dart';
 import '../models/task_completion_record.dart';
 import '../models/performance_data.dart';
+import '../models/focus_session.dart';
 
 class LifeosRepository {
   LifeosRepository({AppDatabase? database}) : _database = database ?? AppDatabase.instance;
@@ -335,4 +336,26 @@ class LifeosRepository {
     final rows = await db.query('tasks', where: 'is_archived = 0 AND due_at IS NOT NULL AND due_at >= ? AND due_at < ?', whereArgs: [from.millisecondsSinceEpoch, to.millisecondsSinceEpoch], orderBy: 'due_at ASC');
     return rows.map(LifeTask.fromMap).toList(growable: false);
   }
+  Future<int> saveFocusSession({
+    required DateTime startedAt, required DateTime endedAt,
+    required int plannedMinutes, required int focusedSeconds, required String status,
+  }) async {
+    if (plannedMinutes <= 0 || focusedSeconds < 0) throw ArgumentError('Invalid focus session duration.');
+    if (!['completed', 'stopped'].contains(status)) throw ArgumentError('Invalid focus session status.');
+    final db = await _database.database;
+    return db.insert('focus_sessions', {
+      'started_at': startedAt.millisecondsSinceEpoch,
+      'ended_at': endedAt.millisecondsSinceEpoch,
+      'planned_minutes': plannedMinutes,
+      'focused_seconds': focusedSeconds,
+      'status': status,
+    });
+  }
+
+  Future<List<FocusSession>> getFocusSessions({int limit = 30}) async {
+    final db = await _database.database;
+    final rows = await db.query('focus_sessions', orderBy: 'started_at DESC, id DESC', limit: limit);
+    return rows.map(FocusSession.fromMap).toList(growable: false);
+  }
+
 }
