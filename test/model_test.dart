@@ -46,6 +46,7 @@ void main() {
       expect(task.isComplete, isTrue);
       expect(task.isArchived, isFalse);
       expect(task.dueAt, DateTime.fromMillisecondsSinceEpoch(due));
+      expect(task.reminderAt, isNull);
     });
 
     test('defaults optional fields safely', () {
