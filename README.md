@@ -10,11 +10,13 @@ LifeOS is a private, local-first Flutter productivity and creative command-cente
 - Projects with linked tasks, milestones, notes and private attachments.
 - Quick Capture inbox that converts captures into tasks, notes and Planner events.
 - LifeOS AI assistant with configurable OpenAI-compatible providers.
-- Focus Guard timer with 15–90 minute presets, pause/resume, and private on-device session history.
+- Focus Guard timer with 15–90 minute presets, pause/resume, private on-device session history and Android screen-time monitoring.
 
 ## Focus Guard
 - Focus sessions are stored locally in SQLite and are not sent to a server.
-- App usage monitoring and optional app restrictions are planned as a follow-up, requiring explicit Android permissions.
+- Screen-time monitoring uses Android Usage Access (special app permission) and reads today's per-app foreground time locally.
+- Usage information stays on the device and is not saved to a remote service. Android permission can be revoked at any time in system settings.
+- Optional app restrictions and focus schedules are planned as a follow-up; monitoring does not block or modify other apps.
 
 ## AI assistant and privacy
 - Configure an OpenAI-compatible HTTPS endpoint, model name and API key from the AI screen.
