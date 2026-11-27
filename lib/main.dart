@@ -5,6 +5,7 @@ import 'models/life_task.dart';
 import 'screens/performance_screen.dart';
 import 'screens/planner_screen.dart';
 import 'screens/brain_vault_screen.dart';
+import 'screens/projects_screen.dart';
 import 'services/reminder_service.dart';
 import 'repositories/lifeos_repository.dart';
 
@@ -76,9 +77,10 @@ class _LifeOsShellState extends State<LifeOsShell> {
   @override
   Widget build(BuildContext context) {
     final pages = <Widget>[
-      HomeScreen(key: _homeKey, repository: _repository, onNavigate: (index) { setState(() => _index = index); if (index == 3) _plannerKey.currentState?.refreshData(); }),
+      HomeScreen(key: _homeKey, repository: _repository, onNavigate: (index) { setState(() => _index = index); if (index == 4) _plannerKey.currentState?.refreshData(); }),
       TasksScreen(repository: _repository),
       BrainVaultScreen(repository: _repository),
+      const ProjectsScreen(),
       PlannerScreen(key: _plannerKey, repository: _repository),
       PerformanceScreen(key: _performanceKey, repository: _repository),
     ];
@@ -89,13 +91,14 @@ class _LifeOsShellState extends State<LifeOsShell> {
         onDestinationSelected: (value) {
           setState(() => _index = value);
           if (value == 0) _homeKey.currentState?.refreshData();
-          if (value == 3) _plannerKey.currentState?.refreshData();
-          if (value == 4) _performanceKey.currentState?.refreshData();
+          if (value == 4) _plannerKey.currentState?.refreshData();
+          if (value == 5) _performanceKey.currentState?.refreshData();
         },
         destinations: const [
           NavigationDestination(icon: Icon(Icons.space_dashboard_outlined), selectedIcon: Icon(Icons.space_dashboard), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.checklist_outlined), selectedIcon: Icon(Icons.checklist), label: 'Tasks'),
           NavigationDestination(icon: Icon(Icons.auto_awesome_mosaic_outlined), selectedIcon: Icon(Icons.auto_awesome_mosaic), label: 'Second Brain'),
+          NavigationDestination(icon: Icon(Icons.folder_outlined), selectedIcon: Icon(Icons.folder), label: 'Projects'),
           NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Planner'),
           NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights), label: 'Growth'),
         ],
@@ -261,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(child: _QuickAction(icon: Icons.lightbulb_outline_rounded, label: 'Capture a note', onTap: () => widget.onNavigate(2))),
           ]),
           const SizedBox(height: 10),
-          _QuickAction(icon: Icons.calendar_month_rounded, label: 'Open Planner', onTap: () => widget.onNavigate(3)),
+          _QuickAction(icon: Icons.calendar_month_rounded, label: 'Open Planner', onTap: () => widget.onNavigate(4)),
           const SizedBox(height: 18),
           Container(
             padding: const EdgeInsets.all(16),
