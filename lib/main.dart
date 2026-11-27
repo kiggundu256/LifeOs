@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'models/idea.dart';
 import 'models/life_task.dart';
+import 'screens/performance_screen.dart';
 import 'repositories/lifeos_repository.dart';
 
 void main() => runApp(const LifeOsApp());
@@ -65,6 +66,7 @@ class LifeOsShell extends StatefulWidget {
 class _LifeOsShellState extends State<LifeOsShell> {
   int _index = 0;
   final _homeKey = GlobalKey<_HomeScreenState>();
+  final _performanceKey = GlobalKey<PerformanceScreenState>();
   final _repository = LifeosRepository();
 
   @override
@@ -74,6 +76,7 @@ class _LifeOsShellState extends State<LifeOsShell> {
       TasksScreen(repository: _repository),
       IdeasScreen(repository: _repository),
       CalendarScreen(repository: _repository),
+      PerformanceScreen(key: _performanceKey, repository: _repository),
     ];
     return Scaffold(
       body: SafeArea(child: IndexedStack(index: _index, children: pages)),
@@ -82,12 +85,14 @@ class _LifeOsShellState extends State<LifeOsShell> {
         onDestinationSelected: (value) {
           setState(() => _index = value);
           if (value == 0) _homeKey.currentState?.refreshData();
+          if (value == 4) _performanceKey.currentState?.refreshData();
         },
         destinations: const [
           NavigationDestination(icon: Icon(Icons.space_dashboard_outlined), selectedIcon: Icon(Icons.space_dashboard), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.checklist_outlined), selectedIcon: Icon(Icons.checklist), label: 'Tasks'),
           NavigationDestination(icon: Icon(Icons.lightbulb_outline), selectedIcon: Icon(Icons.lightbulb), label: 'Ideas'),
           NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Calendar'),
+          NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights), label: 'Growth'),
         ],
       ),
     );
