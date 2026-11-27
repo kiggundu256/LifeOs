@@ -6,6 +6,7 @@ class LifeTask {
     this.isComplete = false,
     this.isArchived = false,
     this.dueAt,
+    this.reminderAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -16,6 +17,7 @@ class LifeTask {
   final bool isComplete;
   final bool isArchived;
   final DateTime? dueAt;
+  final DateTime? reminderAt;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -28,6 +30,7 @@ class LifeTask {
         dueAt: map['due_at'] == null
             ? null
             : DateTime.fromMillisecondsSinceEpoch(map['due_at'] as int),
+        reminderAt: map['reminder_at'] == null ? null : DateTime.fromMillisecondsSinceEpoch(map['reminder_at'] as int),
         createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at'] as int),
       );

@@ -30,7 +30,7 @@ class LifeosRepository {
     return rows.map(LifeTask.fromMap).toList(growable: false);
   }
 
-  Future<int> saveTask({int? id, required String title, String notes = '', DateTime? dueAt, bool? isComplete}) async {
+  Future<int> saveTask({int? id, required String title, String notes = '', DateTime? dueAt, DateTime? reminderAt, bool? isComplete}) async {
     final cleanTitle = title.trim();
     if (cleanTitle.isEmpty) throw ArgumentError('Task title cannot be empty.');
     final db = await _database.database;
@@ -39,6 +39,7 @@ class LifeosRepository {
       'title': cleanTitle,
       'notes': notes.trim(),
       'due_at': dueAt?.millisecondsSinceEpoch,
+      'reminder_at': reminderAt?.millisecondsSinceEpoch,
       'updated_at': now,
     };
     if (id == null) {
@@ -163,7 +164,7 @@ class LifeosRepository {
       activity: historyRows.map(TaskCompletionRecord.fromMap).toList(growable: false),
     );
   }
-  Future<int> saveEvent({int? id, required String title, String notes = '', required DateTime startsAt, DateTime? endsAt, String? recurrenceRule}) async {
+  Future<int> saveEvent({int? id, required String title, String notes = '', required DateTime startsAt, DateTime? endsAt, String? recurrenceRule, int reminderMinutes = 0}) async {
     final cleanTitle = title.trim();
     if (cleanTitle.isEmpty) throw ArgumentError('Event title cannot be empty.');
     if (endsAt != null && endsAt.isBefore(startsAt)) throw ArgumentError('Event end cannot be before its start.');
@@ -175,6 +176,7 @@ class LifeosRepository {
       'starts_at': startsAt.millisecondsSinceEpoch,
       'ends_at': endsAt?.millisecondsSinceEpoch,
       'recurrence_rule': recurrenceRule?.trim().isEmpty == true ? null : recurrenceRule?.trim(),
+      'reminder_minutes': reminderMinutes,
       'updated_at': now,
     };
     if (id == null) {
@@ -186,8 +188,33 @@ class LifeosRepository {
     return id;
   }
 
-  Future<List<Map<String, Object?>>> getEvents({bool includeArchived = false}) async {
+  Future<List<Map<String, Object?>>> getEvents({bool includeArchived = false, DateTime? from, DateTime? to}) async {
     final db = await _database.database;
-    return db.query('events', where: includeArchived ? null : 'is_archived = 0', orderBy: 'starts_at ASC');
+    final clauses = <String>[];
+    final args = <Object?>[];
+    if (!includeArchived) clauses.add('is_archived = 0');
+    if (to != null) { clauses.add('starts_at <= ?'); args.add(to.millisecondsSinceEpoch); }
+    if (from != null) {
+      clauses.add('(starts_at >= ? OR (ends_at IS NOT NULL AND ends_at >= ?) OR recurrence_rule IS NOT NULL)');
+      args..add(from.millisecondsSinceEpoch)..add(from.millisecondsSinceEpoch);
+    }
+    return db.query('events', where: clauses.isEmpty ? null : clauses.join(' AND '), whereArgs: args, orderBy: 'starts_at ASC');
+  }
+
+  Future<void> archiveEvent(int id, bool archived) async {
+    final db = await _database.database;
+    final changed = await db.update('events', {'is_archived': archived ? 1 : 0, 'updated_at': _now()}, where: 'id = ?', whereArgs: [id]);
+    if (changed == 0) throw StateError('Event $id no longer exists.');
+  }
+
+  Future<void> deleteEvent(int id) async {
+    final db = await _database.database;
+    await db.delete('events', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<List<LifeTask>> getTasksDueBetween(DateTime from, DateTime to) async {
+    final db = await _database.database;
+    final rows = await db.query('tasks', where: 'is_archived = 0 AND due_at IS NOT NULL AND due_at >= ? AND due_at < ?', whereArgs: [from.millisecondsSinceEpoch, to.millisecondsSinceEpoch], orderBy: 'due_at ASC');
+    return rows.map(LifeTask.fromMap).toList(growable: false);
   }
 }
