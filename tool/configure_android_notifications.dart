@@ -74,5 +74,31 @@ void main() {
     return;
   }
 
-  stdout.writeln('Android notifications, network access and Java desugaring configured.');
+
+  const usagePermission = '    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />';
+  if (!xml.contains('android.permission.PACKAGE_USAGE_STATS')) {
+    xml = xml.replaceFirst('    <application', '$usagePermission\n    <application');
+  }
+  manifest.writeAsStringSync(xml);
+
+  final activityFiles = Directory('android/app/src/main/kotlin').existsSync()
+      ? Directory('android/app/src/main/kotlin').listSync(recursive: true).whereType<File>().where((file) => file.uri.pathSegments.last == 'MainActivity.kt').toList()
+      : <File>[];
+  if (activityFiles.length != 1) {
+    stderr.writeln('Expected one generated MainActivity.kt, found ${activityFiles.length}.');
+    exitCode = 1;
+    return;
+  }
+  final activityFile = activityFiles.single;
+  final packageMatch = RegExp(r'^package\s+([A-Za-z0-9_.]+)', multiLine: true).firstMatch(activityFile.readAsStringSync());
+  if (packageMatch == null) {
+    stderr.writeln('Could not determine the generated Android package name.');
+    exitCode = 1;
+    return;
+  }
+  final packageName = packageMatch.group(1)!;
+  final kotlinTemplate = File('tool/MainActivity.kt.template').readAsStringSync();
+  activityFile.writeAsStringSync(kotlinTemplate.replaceAll('@@PACKAGE@@', packageName));
+
+  stdout.writeln('Android notifications, network access, usage monitoring and Java desugaring configured.');
 }

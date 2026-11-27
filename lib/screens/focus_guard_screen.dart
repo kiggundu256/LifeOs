@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/focus_session.dart';
 import '../repositories/lifeos_repository.dart';
+import '../services/usage_stats_service.dart';
 
 class FocusGuardScreen extends StatefulWidget {
   const FocusGuardScreen({super.key, required this.repository});
@@ -89,11 +90,7 @@ class _FocusGuardScreenState extends State<FocusGuardScreen> {
           ]),
         ),
         const SizedBox(height: 20),
-        const Card(child: Padding(padding: EdgeInsets.all(17), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [Icon(Icons.shield_outlined, color: Color(0xFF315FE7)), SizedBox(width: 9), Text('App restrictions', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16))]),
-          SizedBox(height: 8),
-          Text('App usage monitoring and optional blocking are the next part of Focus Guard. This first release provides a focus timer and keeps session history on this device.', style: TextStyle(color: Color(0xFF6F7B8E), height: 1.45, fontSize: 13)),
-        ]))),
+        const _UsageMonitorCard(),
         const SizedBox(height: 22),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Recent focus sessions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)), TextButton(onPressed: () => setState(() => _history = widget.repository.getFocusSessions()), child: const Text('Refresh'))]),
         FutureBuilder<List<FocusSession>>(future: _history, builder: (context, snapshot) {
@@ -111,3 +108,91 @@ class _FocusGuardScreenState extends State<FocusGuardScreen> {
     );
   }
 }
+
+class _UsageMonitorCard extends StatefulWidget {
+  const _UsageMonitorCard();
+  @override
+  State<_UsageMonitorCard> createState() => _UsageMonitorCardState();
+}
+
+class _UsageMonitorCardState extends State<_UsageMonitorCard> {
+  bool _checking = true;
+  bool _hasAccess = false;
+  String? _error;
+  List<AppUsageEntry> _apps = const [];
+
+  @override
+  void initState() { super.initState(); _refresh(); }
+
+  Future<void> _refresh() async {
+    setState(() { _checking = true; _error = null; });
+    try {
+      final access = await UsageStatsService.hasUsageAccess();
+      final apps = access ? await UsageStatsService.getTodayUsage() : <AppUsageEntry>[];
+      if (!mounted) return;
+      setState(() { _hasAccess = access; _apps = apps; _checking = false; });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() { _error = 'Screen-time data is unavailable on this device right now.'; _checking = false; });
+    }
+  }
+
+  String _duration(Duration value) {
+    final hours = value.inHours;
+    final minutes = value.inMinutes.remainder(60);
+    return hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final total = _apps.fold<int>(0, (sum, app) => sum + app.foregroundMillis);
+    return Card(child: Padding(padding: const EdgeInsets.all(17), child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          const Icon(Icons.phone_android_rounded, color: Color(0xFF315FE7)),
+          const SizedBox(width: 9),
+          const Expanded(child: Text('Screen-time monitor', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16))),
+          IconButton(tooltip: 'Refresh usage', onPressed: _checking ? null : _refresh, icon: const Icon(Icons.refresh_rounded)),
+        ]),
+        const SizedBox(height: 6),
+        const Text('Usage is read from Android on this device. LifeOS does not upload app activity.', style: TextStyle(color: Color(0xFF6F7B8E), height: 1.4, fontSize: 12)),
+        const SizedBox(height: 14),
+        if (_checking) const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator()))
+        else if (!_hasAccess) ...[
+          const Text('Allow Usage Access to see today’s device screen time and the apps you use most.', style: TextStyle(height: 1.4)),
+          const SizedBox(height: 12),
+          SizedBox(width: double.infinity, child: FilledButton.icon(
+            onPressed: () async {
+              await UsageStatsService.openUsageAccessSettings();
+              if (mounted) await _refresh();
+            },
+            icon: const Icon(Icons.settings_outlined), label: const Text('Grant Usage Access'),
+          )),
+          const SizedBox(height: 5),
+          const Text('Android will open its system settings. Find LifeOS and enable “Permit usage access”. Return here and refresh.', style: TextStyle(fontSize: 11, color: Color(0xFF718096))),
+        ] else ...[
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            const Text('TODAY’S RECORDED USAGE', style: TextStyle(fontSize: 10, letterSpacing: 1, fontWeight: FontWeight.w800, color: Color(0xFF718096))),
+            Text(_duration(Duration(milliseconds: total)), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF263F91))),
+          ]),
+          const SizedBox(height: 12),
+          if (_apps.isEmpty) const Text('No app activity has been recorded yet today.', style: TextStyle(color: Color(0xFF718096)))
+          else ..._apps.take(8).map((app) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(children: [
+              const Icon(Icons.apps_rounded, size: 18, color: Color(0xFF718096)),
+              const SizedBox(width: 10),
+              Expanded(child: Text(app.appName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600))),
+              Text(_duration(app.duration), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+            ]),
+          )),
+          const SizedBox(height: 8),
+          TextButton.icon(onPressed: () async { await UsageStatsService.openUsageAccessSettings(); }, icon: const Icon(Icons.tune_rounded, size: 17), label: const Text('Manage Android permission')),
+        ],
+        if (_error != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 12))),
+      ],
+    )));
+  }
+}
+
