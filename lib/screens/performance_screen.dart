@@ -149,6 +149,8 @@ class PerformanceScreenState extends State<PerformanceScreen> {
     final completed = records.where((e) => e.isCompletion).length;
     final reopened = records.where((e) => !e.isCompletion).length;
     final daily = _dailyCounts(data.activity);
+    final selectedDaily = _dailyCounts(records);
+    final bestDayEntry = selectedDaily.isEmpty ? null : selectedDaily.entries.reduce((a, b) => a.value >= b.value ? a : b);
     final streak = _streak(daily, now);
     final best = _bestStreak(daily);
     final firstTracked = data.activity.isEmpty ? _day(now) : _day(data.activity.last.occurredAt);
@@ -234,6 +236,7 @@ class PerformanceScreenState extends State<PerformanceScreen> {
               Expanded(child: _smallStat('Current streak', streak.toString() + ' days')),
               Expanded(child: _smallStat('Best streak', best.toString() + ' days')),
               Expanded(child: _smallStat('Active days', activeDays.toString())),
+              Expanded(child: _smallStat('Best day', bestDayEntry == null ? '—' : bestDayEntry.value.toString() + ' on ' + _date(DateTime.fromMillisecondsSinceEpoch(bestDayEntry.key)))),
             ]),
           ])),
           const SizedBox(height: 22),
