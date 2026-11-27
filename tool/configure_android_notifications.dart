@@ -77,7 +77,7 @@ void main() {
 
   const usagePermission = '    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />';
   if (!xml.contains('android.permission.PACKAGE_USAGE_STATS')) {
-    xml = xml.replaceFirst('    <application', '$usagePermission\\n    <application');
+    xml = xml.replaceFirst('    <application', '$usagePermission\n    <application');
   }
   manifest.writeAsStringSync(xml);
 
@@ -90,7 +90,7 @@ void main() {
     return;
   }
   final activityFile = activityFiles.single;
-  final packageMatch = RegExp(r'^package\\s+([A-Za-z0-9_.]+)', multiLine: true).firstMatch(activityFile.readAsStringSync());
+  final packageMatch = RegExp(r'^package\s+([A-Za-z0-9_.]+)', multiLine: true).firstMatch(activityFile.readAsStringSync());
   if (packageMatch == null) {
     stderr.writeln('Could not determine the generated Android package name.');
     exitCode = 1;
