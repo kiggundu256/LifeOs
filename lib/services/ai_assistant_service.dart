@@ -28,15 +28,16 @@ class AiAssistantService {
     return AiAssistantConfig(endpoint:endpoint,model:model,hasApiKey:key!=null&&key.trim().isNotEmpty);
   }
 
-  Future<void> saveConfig({required String endpoint,required String model,required String apiKey}) async {
+  Future<void> saveConfig({required String endpoint,required String model,String apiKey=''}) async {
     final cleanEndpoint=endpoint.trim().replaceFirst(RegExp(r'/+$'),'');
     final cleanModel=model.trim();
     if(!cleanEndpoint.startsWith('https://')) throw ArgumentError('Use a secure HTTPS API endpoint.');
     if(cleanModel.isEmpty) throw ArgumentError('Enter a model name.');
-    if(apiKey.trim().isEmpty) throw ArgumentError('Enter an API key.');
+    final existing=await _storage.read(key:_apiKey);
+    if(apiKey.trim().isEmpty&&(existing==null||existing.trim().isEmpty)) throw ArgumentError('Enter an API key.');
     await _storage.write(key:_endpointKey,value:cleanEndpoint);
     await _storage.write(key:_modelKey,value:cleanModel);
-    await _storage.write(key:_apiKey,value:apiKey.trim());
+    if(apiKey.trim().isNotEmpty) await _storage.write(key:_apiKey,value:apiKey.trim());
   }
 
   Future<void> clearApiKey() async { await _storage.delete(key:_apiKey); }
@@ -73,9 +74,12 @@ class AiAssistantService {
     out.writeln('OPEN TASKS:');
     for(final t in tasks.where((t)=>!t.isComplete).take(20)){out.writeln('- ${t.title}${t.dueAt==null?'':' (due ${t.dueAt!.toLocal()})'}${t.notes.isEmpty?'':': ${t.notes}'}');}
     out.writeln('SECOND BRAIN NOTES:');
-    for(final n in notes.take(15)){out.writeln('- ${n['title']}: ${(n['body'] as String? ?? '').replaceAll(RegExp(r'\\s+'),' ').substring(0,((n['body'] as String? ?? '').length).clamp(0,500))}');}
+    for(final n in notes.take(15)){
+      final body=n['body'] as String? ?? '';
+      out.writeln('- ${n['title']}: ${body.replaceAll(RegExp(r'\\s+'),' ').substring(0,body.length>500?500:body.length)}');
+    }
     out.writeln('PROJECTS:');
-    for(final p in projects.take(15)){out.writeln('- ${p['title']} [${p['status']}, ${p['priority']} priority]${p['objective']==null?'':': ${p['objective']}'}');}
+    for(final p in projects.take(15)){out.writeln('- ${p['title']} [${p['status']}, ${p['priority']} priority]: ${p['objective']??''}');}
     out.writeln('QUICK CAPTURE INBOX:');
     for(final c in captures.take(15)){out.writeln('- [${c.kind}] ${c.title}${c.body.isEmpty?'':': ${c.body}'}');}
     return out.toString();
