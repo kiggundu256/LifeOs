@@ -30,6 +30,22 @@ flutter test
 flutter run
 ```
 
+## Phase 2 progress foundation
+
+- Task completion and reopening transitions are now recorded as local activity history.
+- Each activity stores the task ID, task-title snapshot, action, and timestamp so future progress charts can use historical data.
+- Existing installations are upgraded with a versioned SQLite migration; existing tasks, ideas, and calendar events are preserved.
+- The repository exposes typed, date-filterable task completion records.
+
+## Next product milestones
+
+1. Add a Performance & Growth screen with daily and weekly completion charts.
+2. Complete calendar recurrence generation and event editing, archiving, and deletion.
+3. Expand the idea vault into a searchable Second Brain with private attachments.
+4. Add the Projects workspace and global Quick Capture.
+5. Add reminders, notifications, and Focus Guard.
+6. Introduce the AI assistant with explicit privacy controls and local-first defaults.
+
 ## Important scope notes
 
 - The recurrence rule is saved, but recurring event occurrence generation is not implemented yet.
