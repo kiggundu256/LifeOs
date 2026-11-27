@@ -56,6 +56,7 @@ class AppDatabase {
         await db.execute('CREATE INDEX idx_tasks_status ON tasks(is_complete, is_archived)');
         await db.execute('CREATE INDEX idx_ideas_archived ON ideas(is_archived)');
         await db.execute('CREATE INDEX idx_events_starts ON events(starts_at)');
+        await db.execute('CREATE INDEX idx_tasks_due ON tasks(due_at)');
         await db.execute('''
           CREATE TABLE task_completion_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
