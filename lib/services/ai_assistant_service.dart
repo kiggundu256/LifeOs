@@ -76,7 +76,7 @@ class AiAssistantService {
     out.writeln('SECOND BRAIN NOTES:');
     for(final n in notes.take(15)){
       final body=n['body'] as String? ?? '';
-      out.writeln('- ${n['title']}: ${body.replaceAll(RegExp(r'\\s+'),' ').substring(0,body.length>500?500:body.length)}');
+      out.writeln('- ${n['title']}: ${body.replaceAll(RegExp(r'\s+'),' ').substring(0,body.length>500?500:body.length)}');
     }
     out.writeln('PROJECTS:');
     for(final p in projects.take(15)){out.writeln('- ${p['title']} [${p['status']}, ${p['priority']} priority]: ${p['objective']??''}');}
