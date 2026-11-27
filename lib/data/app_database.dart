@@ -29,6 +29,15 @@ class AppDatabase {
           )
         ''');
         await db.execute('''
+          CREATE TABLE brain_folders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL COLLATE NOCASE UNIQUE CHECK(length(trim(name)) > 0),
+            color INTEGER NOT NULL DEFAULT 0,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+          )
+        ''');
+        await db.execute('''
           CREATE TABLE ideas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL CHECK(length(trim(title)) > 0),
@@ -58,15 +67,6 @@ class AppDatabase {
         await db.execute('CREATE INDEX idx_tasks_status ON tasks(is_complete, is_archived)');
         await db.execute('CREATE INDEX idx_ideas_archived ON ideas(is_archived)');
         await db.execute('CREATE INDEX idx_ideas_pinned ON ideas(is_pinned, updated_at)');
-        await db.execute('''
-          CREATE TABLE brain_folders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL COLLATE NOCASE UNIQUE CHECK(length(trim(name)) > 0),
-            color INTEGER NOT NULL DEFAULT 0,
-            created_at INTEGER NOT NULL,
-            updated_at INTEGER NOT NULL
-          )
-        ''');
         await db.execute('''
           CREATE TABLE brain_tags (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -121,8 +121,6 @@ class AppDatabase {
           await db.execute('CREATE INDEX idx_task_completion_history_date ON task_completion_history(occurred_at)');
         }
         if (oldVersion < 4) {
-          await db.execute('ALTER TABLE ideas ADD COLUMN is_pinned INTEGER NOT NULL DEFAULT 0');
-          await db.execute('ALTER TABLE ideas ADD COLUMN folder_id INTEGER REFERENCES brain_folders(id) ON DELETE SET NULL');
           await db.execute('''
             CREATE TABLE brain_folders (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -132,6 +130,8 @@ class AppDatabase {
               updated_at INTEGER NOT NULL
             )
           ''');
+          await db.execute('ALTER TABLE ideas ADD COLUMN is_pinned INTEGER NOT NULL DEFAULT 0');
+          await db.execute('ALTER TABLE ideas ADD COLUMN folder_id INTEGER REFERENCES brain_folders(id) ON DELETE SET NULL');
           await db.execute('''
             CREATE TABLE brain_tags (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
