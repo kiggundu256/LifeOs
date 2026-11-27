@@ -118,7 +118,6 @@ class _UsageMonitorCard extends StatefulWidget {
 class _UsageMonitorCardState extends State<_UsageMonitorCard> {
   bool _checking = true;
   bool _hasAccess = false;
-  bool _loading = false;
   String? _error;
   List<AppUsageEntry> _apps = const [];
 
@@ -154,7 +153,7 @@ class _UsageMonitorCardState extends State<_UsageMonitorCard> {
           const Icon(Icons.phone_android_rounded, color: Color(0xFF315FE7)),
           const SizedBox(width: 9),
           const Expanded(child: Text('Screen-time monitor', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16))),
-          IconButton(tooltip: 'Refresh usage', onPressed: _checking || _loading ? null : _refresh, icon: const Icon(Icons.refresh_rounded)),
+          IconButton(tooltip: 'Refresh usage', onPressed: _checking ? null : _refresh, icon: const Icon(Icons.refresh_rounded)),
         ]),
         const SizedBox(height: 6),
         const Text('Usage is read from Android on this device. LifeOS does not upload app activity.', style: TextStyle(color: Color(0xFF6F7B8E), height: 1.4, fontSize: 12)),
