@@ -49,7 +49,16 @@ The app includes 7-, 30-, 90-day and all-history views; completion and reopening
 3. Build Focus Guard and device usage controls.
 4. Introduce the AI assistant with explicit privacy controls and local-first defaults.
 
-## Second Brain vault\n\n- Existing Ideas are retained and upgraded in place as notes; the SQLite v4 migration preserves their titles, bodies, archive state, and timestamps.\n- Notes can be organized into folders, tagged, pinned, searched across titles/body/tags, archived, restored, and permanently deleted.\n- File attachments are copied into the app-private `second_brain/attachments` directory; only metadata and private paths are stored in SQLite. Attachments are not uploaded to a server.\n- Attachments can be opened with a compatible Android app, added to existing notes, or removed from the vault. Deleting a note also removes its private attachment copies.\n\n## Planner and reminder behavior
+## Second Brain vault\n\n- Existing Ideas are retained and upgraded in place as notes; the SQLite v4 migration preserves their titles, bodies, archive state, and timestamps.\n- Notes can be organized into folders, tagged, pinned, searched across titles/body/tags, archived, restored, and permanently deleted.\n- File attachments are copied into the app-private `second_brain/attachments` directory; only metadata and private paths are stored in SQLite. Attachments are not uploaded to a server.\n- Attachments can be opened with a compatible Android app, added to existing notes, or removed from the vault. Deleting a note also removes its private attachment copies.\n\n## Projects workspace
+
+- Projects have a title, desired outcome, description, priority, status, start date and deadline.
+- Each project has its own detail workspace with linked tasks, milestones, project notes and private file attachments.
+- Project task completion and milestone completion automatically update the calculated progress shown in the project list.
+- Project tasks are stored in the same task table used by Tasks and Planner, so deadlines remain visible in the shared planning workflow.
+- Projects can be searched, edited, placed on hold, completed, archived, restored or deleted. Deleting a project preserves its tasks by clearing their project link.
+- SQLite v5 adds project tables and a nullable task association while preserving existing tasks, notes, events and completion history.
+
+## Planner and reminder behavior
 
 - Planner recurrence is expanded locally for daily, weekly, and monthly events; monthly schedules retain their original day-of-month where possible.
 - Task reminders and event reminders are scheduled as Android local notifications, restored after device reboot, and reconciled for the next 90 days whenever the Planner initializes.
