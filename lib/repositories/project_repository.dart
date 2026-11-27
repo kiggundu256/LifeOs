@@ -1,6 +1,5 @@
 import 'package:sqflite/sqflite.dart';
 import '../data/app_database.dart';
-import '../models/life_project.dart';
 
 class ProjectRepository {
   ProjectRepository({AppDatabase? database}) : _database = database ?? AppDatabase.instance;
