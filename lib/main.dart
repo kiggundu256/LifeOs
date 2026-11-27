@@ -4,6 +4,7 @@ import 'models/idea.dart';
 import 'models/life_task.dart';
 import 'screens/performance_screen.dart';
 import 'screens/planner_screen.dart';
+import 'screens/brain_vault_screen.dart';
 import 'services/reminder_service.dart';
 import 'repositories/lifeos_repository.dart';
 
@@ -77,7 +78,7 @@ class _LifeOsShellState extends State<LifeOsShell> {
     final pages = <Widget>[
       HomeScreen(key: _homeKey, repository: _repository, onNavigate: (index) { setState(() => _index = index); if (index == 3) _plannerKey.currentState?.refreshData(); }),
       TasksScreen(repository: _repository),
-      IdeasScreen(repository: _repository),
+      BrainVaultScreen(repository: _repository),
       PlannerScreen(key: _plannerKey, repository: _repository),
       PerformanceScreen(key: _performanceKey, repository: _repository),
     ];
@@ -94,7 +95,7 @@ class _LifeOsShellState extends State<LifeOsShell> {
         destinations: const [
           NavigationDestination(icon: Icon(Icons.space_dashboard_outlined), selectedIcon: Icon(Icons.space_dashboard), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.checklist_outlined), selectedIcon: Icon(Icons.checklist), label: 'Tasks'),
-          NavigationDestination(icon: Icon(Icons.lightbulb_outline), selectedIcon: Icon(Icons.lightbulb), label: 'Ideas'),
+          NavigationDestination(icon: Icon(Icons.auto_awesome_mosaic_outlined), selectedIcon: Icon(Icons.auto_awesome_mosaic), label: 'Second Brain'),
           NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Planner'),
           NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights), label: 'Growth'),
         ],
@@ -257,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(children: [
             Expanded(child: _QuickAction(icon: Icons.add_task_rounded, label: 'New task', onTap: () => widget.onNavigate(1))),
             const SizedBox(width: 10),
-            Expanded(child: _QuickAction(icon: Icons.lightbulb_outline_rounded, label: 'Capture idea', onTap: () => widget.onNavigate(2))),
+            Expanded(child: _QuickAction(icon: Icons.lightbulb_outline_rounded, label: 'Capture a note', onTap: () => widget.onNavigate(2))),
           ]),
           const SizedBox(height: 10),
           _QuickAction(icon: Icons.calendar_month_rounded, label: 'Open Planner', onTap: () => widget.onNavigate(3)),
