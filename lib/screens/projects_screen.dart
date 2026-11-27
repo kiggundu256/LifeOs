@@ -46,7 +46,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   }
 
   @override Widget build(BuildContext context)=>Scaffold(
-    appBar:AppBar(title:const Text('Projects'),actions:[IconButton(tooltip:_archived?'Show active':'Show archived',onPressed:()=>setState(()=>{_archived=!_archived;_load();}),icon:Icon(_archived?Icons.folder_open:Icons.archive_outlined))]),
+    appBar:AppBar(title:const Text('Projects'),actions:[IconButton(tooltip:_archived?'Show active':'Show archived',onPressed:(){setState((){_archived=!_archived;_load();});},icon:Icon(_archived?Icons.folder_open:Icons.archive_outlined))]),
     floatingActionButton:_archived?null:FloatingActionButton.extended(onPressed:()=>_edit(),icon:const Icon(Icons.add),label:const Text('New project')),
     body:Column(children:[
       Padding(padding:const EdgeInsets.fromLTRB(16,4,16,12),child:TextField(controller:_search,onChanged:(_)=>setState(_load),decoration:InputDecoration(hintText:'Search projects, goals and descriptions',prefixIcon:const Icon(Icons.search),suffixIcon:_search.text.isEmpty?null:IconButton(onPressed:(){_search.clear();setState(_load);},icon:const Icon(Icons.clear))))),
