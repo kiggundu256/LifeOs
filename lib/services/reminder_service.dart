@@ -17,9 +17,9 @@ class ReminderService {
       _ready = true;
     }
     if (requestPermission && !_permissionChecked) {
-      _permissionChecked = true;
       final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       await android?.requestNotificationsPermission();
+      _permissionChecked = true;
     }
   }
 
