@@ -12,7 +12,7 @@ class AppDatabase {
     final dbPath = await getDatabasesPath();
     _database = await openDatabase(
       p.join(dbPath, 'lifeos.db'),
-      version: 5,
+      version: 6,
       onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: (db, version) async {
         await db.execute('''
@@ -128,6 +128,26 @@ class AppDatabase {
           )
         ''');
         await db.execute('CREATE INDEX idx_task_completion_history_date ON task_completion_history(occurred_at)');
+        await db.execute('''
+          CREATE TABLE quick_captures (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            kind TEXT NOT NULL CHECK(kind IN ('task','note','event')),
+            title TEXT NOT NULL CHECK(length(trim(title)) > 0),
+            body TEXT NOT NULL DEFAULT '',
+            due_at INTEGER,
+            reminder_at INTEGER,
+            scheduled_at INTEGER,
+            reminder_minutes INTEGER NOT NULL DEFAULT 0,
+            project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
+            status TEXT NOT NULL DEFAULT 'inbox' CHECK(status IN ('inbox','processed','archived')),
+            converted_type TEXT,
+            converted_id INTEGER,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+          )
+        ''');
+        await db.execute('CREATE INDEX idx_quick_captures_status ON quick_captures(status, updated_at DESC)');
+        await db.execute('CREATE INDEX idx_quick_captures_project ON quick_captures(project_id)');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -197,6 +217,28 @@ class AppDatabase {
           await db.execute('''CREATE TABLE project_notes (project_id INTEGER PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE, body TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL)''');
           await db.execute('''CREATE TABLE project_attachments (id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE, display_name TEXT NOT NULL, stored_path TEXT NOT NULL, mime_type TEXT, size_bytes INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL)''');
           await db.execute('CREATE INDEX idx_project_attachments_project ON project_attachments(project_id)');
+        }
+        if (oldVersion < 6) {
+          await db.execute('''
+            CREATE TABLE quick_captures (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              kind TEXT NOT NULL CHECK(kind IN ('task','note','event')),
+              title TEXT NOT NULL CHECK(length(trim(title)) > 0),
+              body TEXT NOT NULL DEFAULT '',
+              due_at INTEGER,
+              reminder_at INTEGER,
+              scheduled_at INTEGER,
+              reminder_minutes INTEGER NOT NULL DEFAULT 0,
+              project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
+              status TEXT NOT NULL DEFAULT 'inbox' CHECK(status IN ('inbox','processed','archived')),
+              converted_type TEXT,
+              converted_id INTEGER,
+              created_at INTEGER NOT NULL,
+              updated_at INTEGER NOT NULL
+            )
+          ''');
+          await db.execute('CREATE INDEX idx_quick_captures_status ON quick_captures(status, updated_at DESC)');
+          await db.execute('CREATE INDEX idx_quick_captures_project ON quick_captures(project_id)');
         }
       },
     );

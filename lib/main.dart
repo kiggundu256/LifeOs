@@ -6,6 +6,7 @@ import 'screens/performance_screen.dart';
 import 'screens/planner_screen.dart';
 import 'screens/brain_vault_screen.dart';
 import 'screens/projects_screen.dart';
+import 'screens/quick_capture_screen.dart';
 import 'services/reminder_service.dart';
 import 'repositories/lifeos_repository.dart';
 
@@ -83,6 +84,7 @@ class _LifeOsShellState extends State<LifeOsShell> {
       const ProjectsScreen(),
       PlannerScreen(key: _plannerKey, repository: _repository),
       PerformanceScreen(key: _performanceKey, repository: _repository),
+      QuickCaptureScreen(repository: _repository),
     ];
     return Scaffold(
       body: SafeArea(child: IndexedStack(index: _index, children: pages)),
@@ -101,6 +103,7 @@ class _LifeOsShellState extends State<LifeOsShell> {
           NavigationDestination(icon: Icon(Icons.folder_outlined), selectedIcon: Icon(Icons.folder), label: 'Projects'),
           NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Planner'),
           NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights), label: 'Growth'),
+          NavigationDestination(icon: Icon(Icons.add_circle_outline), selectedIcon: Icon(Icons.add_circle), label: 'Capture'),
         ],
       ),
     );
