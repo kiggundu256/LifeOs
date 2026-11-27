@@ -482,7 +482,7 @@ class _TaskDialogState extends State<_TaskDialog> {
       TextField(controller: _title, autofocus: true, textCapitalization: TextCapitalization.sentences, decoration: const InputDecoration(labelText: 'Task title', hintText: 'What needs to get done?')),
       const SizedBox(height: 12), TextField(controller: _notes, minLines: 2, maxLines: 4, textCapitalization: TextCapitalization.sentences, decoration: const InputDecoration(labelText: 'Notes (optional)')),
       const SizedBox(height: 12), Align(alignment: Alignment.centerLeft, child: Wrap(spacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-        OutlinedButton.icon(onPressed: () async { final picked = await showDatePicker(context: context, initialDate: _dueAt ?? DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2100)); if (picked != null) setState(() => _dueAt = DateTime(picked.year, picked.month, picked.day)); }, icon: const Icon(Icons.calendar_today), label: Text(_dueAt == null ? 'Set due date' : '${_dueAt!.day}/${_dueAt!.month}/${_dueAt!.year}')),
+        OutlinedButton.icon(onPressed: () async { final picked = await showDatePicker(context: context, initialDate: _dueAt ?? DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2100)); if (picked != null && mounted) setState(() => _dueAt = DateTime(picked.year, picked.month, picked.day)); }, icon: const Icon(Icons.calendar_today), label: Text(_dueAt == null ? 'Set due date' : '${_dueAt!.day}/${_dueAt!.month}/${_dueAt!.year}')),
         if (_dueAt != null) IconButton(tooltip: 'Clear due date', onPressed: () => setState(() => _dueAt = null), icon: const Icon(Icons.close)),
       ])),
       const SizedBox(height: 12),
@@ -493,7 +493,7 @@ class _TaskDialogState extends State<_TaskDialog> {
             final date = await showDatePicker(context: context, initialDate: initial, firstDate: DateTime(2020), lastDate: DateTime(2100));
             if (date == null || !mounted) return;
             final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(initial));
-            if (time != null) setState(() => _reminderAt = DateTime(date.year, date.month, date.day, time.hour, time.minute));
+            if (time != null && mounted) setState(() => _reminderAt = DateTime(date.year, date.month, date.day, time.hour, time.minute));
           },
           icon: const Icon(Icons.notifications_active_outlined),
           label: Text(_reminderAt == null ? 'Set reminder' : 'Reminder ${_reminderAt!.day}/${_reminderAt!.month} ${_reminderAt!.hour.toString().padLeft(2, '0')}:${_reminderAt!.minute.toString().padLeft(2, '0')}'),
