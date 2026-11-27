@@ -1,28 +1,25 @@
 # LifeOS — Personal productivity and knowledge workspace
 
-A local-first Flutter foundation for a private personal productivity and creative command-center Android app.
+LifeOS is a private, local-first Flutter productivity and creative command-center app.
 
-## Included in this phase
+## Included capabilities
+- Home dashboard, tasks and task completion history.
+- Performance & Growth analytics with trends, streaks and consistency history.
+- Planner calendar with recurring events and Android local reminders.
+- Second Brain searchable notes, folders, tags, pinning and private attachments.
+- Projects with linked tasks, milestones, notes and private attachments.
+- Quick Capture inbox that converts captures into tasks, notes and Planner events.
+- LifeOS AI assistant with configurable OpenAI-compatible providers.
 
-- Home dashboard with open/completed task counts and quick navigation.
-- SQLite database stored in the app's private database directory.
-- Tasks: create, edit, complete/uncomplete, search, archive/restore, and delete.
-- Second Brain: searchable notes, folders, tags, pinning, archive/restore, and private file attachments.
-- Planner: day, week, and month views; task deadlines; event creation, editing, archiving and deletion; daily, weekly, and monthly recurrence expansion; and scheduled local reminders.
-- Database constraints and indexes, plus a versioned schema migration hook.
-- Quick Capture inbox for rapidly saving tasks, notes and scheduled events before organising them.
-- Model mapping tests.
+## AI assistant and privacy
+- Configure an OpenAI-compatible HTTPS endpoint, model name and API key from the AI screen.
+- API keys are stored with Android secure storage and are not included in source code or SQLite.
+- LifeOS context sharing is off by default. When explicitly enabled, a limited snapshot of open tasks, Second Brain notes, projects and inbox captures is sent to the configured provider with the request.
+- Attachments and API keys are never added to the context snapshot.
+- AI responses are advisory. The assistant cannot silently modify tasks, projects, notes or reminders.
+- AI provider usage may incur charges according to the provider's pricing. LifeOS does not include a bundled API key.
 
-## Requirements
-
-- Flutter SDK compatible with Dart 3.3 or newer.
-- Android Studio or VS Code with Flutter/Dart tooling.
-- Android device or emulator.
-
-## Run
-
-From this directory, first generate the Android platform folder if it is not present (this source bundle intentionally focuses on the app code):
-
+## Build
 ```bash
 flutter create --platforms=android --project-name lifeos .
 dart tool/configure_android_notifications.dart
@@ -31,68 +28,4 @@ flutter analyze
 flutter test
 flutter run
 ```
-
-## Phase 2 progress foundation
-
-- Task completion and reopening transitions are now recorded as local activity history.
-- Each activity stores the task ID, task-title snapshot, action, and timestamp so future progress charts can use historical data.
-- Existing installations are upgraded with a versioned SQLite migration; existing tasks, ideas, and calendar events are preserved.
-- The repository exposes typed, date-filterable task completion records.
-
-## Performance & Growth dashboard
-
-The app includes 7-, 30-, 90-day and all-history views; completion and reopening counts; daily averages; active-day counts; completion trend bars; a 28-day consistency map; current and best streaks; active/archived task balance; recent activity; and completion milestones. Task history is recorded locally and is not backfilled for activity before the tracking migration.
-
-## Next product milestones
-
-1. Expand Second Brain into a searchable vault with private attachments.
-2. Add the Projects workspace and global Quick Capture.
-3. Build Focus Guard and device usage controls.
-4. Introduce the AI assistant with explicit privacy controls and local-first defaults.
-
-## Second Brain vault\n\n- Existing Ideas are retained and upgraded in place as notes; the SQLite v4 migration preserves their titles, bodies, archive state, and timestamps.\n- Notes can be organized into folders, tagged, pinned, searched across titles/body/tags, archived, restored, and permanently deleted.\n- File attachments are copied into the app-private `second_brain/attachments` directory; only metadata and private paths are stored in SQLite. Attachments are not uploaded to a server.\n- Attachments can be opened with a compatible Android app, added to existing notes, or removed from the vault. Deleting a note also removes its private attachment copies.\n\n## Projects workspace
-
-- Projects have a title, desired outcome, description, priority, status, start date and deadline.
-- Each project has its own detail workspace with linked tasks, milestones, project notes and private file attachments.
-- Project task completion and milestone completion automatically update the calculated progress shown in the project list.
-- Project tasks are stored in the same task table used by Tasks and Planner, so deadlines remain visible in the shared planning workflow.
-- Projects can be searched, edited, placed on hold, completed, archived, restored or deleted. Deleting a project preserves its tasks by clearing their project link.
-- SQLite v5 adds project tables and a nullable task association while preserving existing tasks, notes, events and completion history.
-
-## Planner and reminder behavior
-
-- Planner recurrence is expanded locally for daily, weekly, and monthly events; monthly schedules retain their original day-of-month where possible.
-- Task reminders and event reminders are scheduled as Android local notifications, restored after device reboot, and reconciled for the next 90 days whenever the Planner initializes.
-- Android notification permission is requested when a reminder is first scheduled. Delivery time can still be affected by device battery restrictions and notification settings.
-
-## Important scope notes
-
-- Attachments, voice/image capture, AI, and Focus Guard remain planned follow-on work.
-- SQLite database contents are app-private and local. This starter does not send user data to a server.
-- The GitHub Actions workflow runs Dart analysis, unit tests, and a release APK build on every pull request and main-branch update.
-
-## Suggested next steps
-
-1. Expand the Projects workspace and global Quick Capture.
-2. Add the Projects workspace and global Quick Capture.
-3. Build Focus Guard and device usage controls.
-4. Introduce the AI assistant with explicit privacy controls and local-first defaults.
-
-## Build an APK using GitHub Actions (no local Flutter installation needed)
-
-1. Open this repository's **Actions** tab.
-2. Open the latest successful **LifeOS Android quality checks and APK** run.
-3. Download the `LifeOS-Android-APK` artifact and extract `app-release.apk`.
-4. Transfer the APK to your Android phone and install it. Android may ask you to allow installs from that source.
-
-This is a personal-use release APK, not a Play Store production-signed build. The workflow runs Flutter tests before building; if tests or compilation fail, the workflow will report the errors instead of producing an APK.
-
-
-## Quick Capture inbox
-
-- Capture tasks, notes and scheduled events into a dedicated local inbox without deciding where they belong immediately.
-- Add optional due dates, task reminders, event start times and project associations at capture time.
-- Search and filter inbox, processed and archived captures; edit, archive, restore or delete captures.
-- Convert captures into real Tasks, Second Brain notes or Planner events. Task conversion preserves due/reminder times and project links; event conversion schedules its local notification.
-- Captures remain in the inbox history after conversion, with a link to the created item recorded for traceability.
-- SQLite v6 adds the capture inbox and indexes without changing or deleting existing LifeOS data. All capture content remains in the app's private local database.
+GitHub Actions runs Dart analysis, Flutter tests and a release APK build on pull requests and main-branch updates. Download the `LifeOS-Android-APK` artifact from a successful workflow run.
