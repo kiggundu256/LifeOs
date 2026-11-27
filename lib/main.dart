@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'models/idea.dart';
 import 'models/life_task.dart';
 import 'screens/performance_screen.dart';
+import 'screens/planner_screen.dart';
+import 'services/reminder_service.dart';
 import 'repositories/lifeos_repository.dart';
 
 void main() => runApp(const LifeOsApp());
@@ -75,7 +77,7 @@ class _LifeOsShellState extends State<LifeOsShell> {
       HomeScreen(key: _homeKey, repository: _repository, onNavigate: (index) => setState(() => _index = index)),
       TasksScreen(repository: _repository),
       IdeasScreen(repository: _repository),
-      CalendarScreen(repository: _repository),
+      PlannerScreen(repository: _repository),
       PerformanceScreen(key: _performanceKey, repository: _repository),
     ];
     return Scaffold(
@@ -91,7 +93,7 @@ class _LifeOsShellState extends State<LifeOsShell> {
           NavigationDestination(icon: Icon(Icons.space_dashboard_outlined), selectedIcon: Icon(Icons.space_dashboard), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.checklist_outlined), selectedIcon: Icon(Icons.checklist), label: 'Tasks'),
           NavigationDestination(icon: Icon(Icons.lightbulb_outline), selectedIcon: Icon(Icons.lightbulb), label: 'Ideas'),
-          NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Calendar'),
+          NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Planner'),
           NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights), label: 'Growth'),
         ],
       ),
@@ -300,7 +302,12 @@ class _TasksScreenState extends State<TasksScreen> {
     final result = await showDialog<_TaskDraft>(context: context, builder: (_) => _TaskDialog(task: task));
     if (result == null) return;
     try {
-      await widget.repository.saveTask(id: task?.id, title: result.title, notes: result.notes, dueAt: result.dueAt);
+      final id = await widget.repository.saveTask(id: task?.id, title: result.title, notes: result.notes, dueAt: result.dueAt, reminderAt: result.reminderAt);
+      if (result.reminderAt != null) {
+        await ReminderService.instance.schedule(id: 1000000000 + id, title: result.title, body: 'Task reminder', at: result.reminderAt!);
+      } else {
+        await ReminderService.instance.cancelTask(id);
+      }
       if (mounted) { setState(_load); _message(task == null ? 'Task added' : 'Task updated'); }
     } catch (error) { if (mounted) _message(error.toString()); }
   }
@@ -314,6 +321,7 @@ class _TasksScreenState extends State<TasksScreen> {
     ));
     if (confirm != true) return;
     await widget.repository.deleteTask(task.id);
+    await ReminderService.instance.cancelTask(task.id);
     if (mounted) setState(_load);
   }
 
@@ -336,7 +344,13 @@ class _TasksScreenState extends State<TasksScreen> {
         return RefreshIndicator(onRefresh: _refresh, child: ListView.separated(padding: const EdgeInsets.fromLTRB(16, 0, 16, 90), itemCount: tasks.length, separatorBuilder: (_, __) => const SizedBox(height: 8), itemBuilder: (context, index) {
           final task = tasks[index];
           return Card(child: ListTile(
-            leading: _showArchived ? const Icon(Icons.archive_outlined) : Checkbox(value: task.isComplete, onChanged: (value) async { await widget.repository.setTaskComplete(task.id, value ?? false); if (mounted) setState(_load); }),
+            leading: _showArchived ? const Icon(Icons.archive_outlined) : Checkbox(value: task.isComplete, onChanged: (value) async {
+              final complete = value ?? false;
+              await widget.repository.setTaskComplete(task.id, complete);
+              if (complete) { await ReminderService.instance.cancelTask(task.id); }
+              else if (task.reminderAt != null) { await ReminderService.instance.schedule(id: 1000000000 + task.id, title: task.title, body: 'Task reminder', at: task.reminderAt!); }
+              if (mounted) setState(_load);
+            }),
             title: Text(task.title, style: TextStyle(decoration: task.isComplete ? TextDecoration.lineThrough : null), maxLines: 2, overflow: TextOverflow.ellipsis),
             subtitle: task.notes.isEmpty ? null : Text(task.notes, maxLines: 2, overflow: TextOverflow.ellipsis),
             trailing: PopupMenuButton<String>(onSelected: (action) async {
@@ -428,73 +442,12 @@ class _IdeasScreenState extends State<IdeasScreen> {
   );
 }
 
-class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({super.key, required this.repository});
-  final LifeosRepository repository;
-  @override
-  State<CalendarScreen> createState() => _CalendarScreenState();
-}
-
-class _CalendarScreenState extends State<CalendarScreen> {
-  late Future<List<Map<String, Object?>>> _future;
-  @override
-  void initState() { super.initState(); _load(); }
-  void _load() => _future = widget.repository.getEvents();
-
-  Future<void> _addEvent() async {
-    final title = TextEditingController();
-    final notes = TextEditingController();
-    DateTime startsAt = DateTime.now().add(const Duration(hours: 1));
-    String recurrence = 'none';
-    final result = await showDialog<bool>(context: context, builder: (context) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
-      title: const Text('New appointment'),
-      content: SizedBox(width: 420, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(controller: title, autofocus: true, decoration: const InputDecoration(labelText: 'Title')),
-        const SizedBox(height: 12), TextField(controller: notes, minLines: 2, maxLines: 4, decoration: const InputDecoration(labelText: 'Notes')),
-        const SizedBox(height: 12), ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.event), title: const Text('Starts'), subtitle: Text('${startsAt.day}/${startsAt.month}/${startsAt.year} ${startsAt.hour.toString().padLeft(2, '0')}:${startsAt.minute.toString().padLeft(2, '0')}'), onTap: () async {
-          final date = await showDatePicker(context: context, initialDate: startsAt, firstDate: DateTime(2020), lastDate: DateTime(2100));
-          if (date == null || !context.mounted) return;
-          final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(startsAt));
-          if (time == null) return;
-          setDialogState(() => startsAt = DateTime(date.year, date.month, date.day, time.hour, time.minute));
-        }),
-        DropdownButtonFormField<String>(initialValue: recurrence, decoration: const InputDecoration(labelText: 'Repeat'), items: const [DropdownMenuItem(value: 'none', child: Text('Does not repeat')), DropdownMenuItem(value: 'daily', child: Text('Daily')), DropdownMenuItem(value: 'weekly', child: Text('Weekly')), DropdownMenuItem(value: 'monthly', child: Text('Monthly'))], onChanged: (value) => setDialogState(() => recurrence = value ?? 'none')),
-      ]))),
-      actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')), FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Save'))],
-    )));
-    if (result == true) {
-      try {
-        await widget.repository.saveEvent(title: title.text, notes: notes.text, startsAt: startsAt, recurrenceRule: recurrence == 'none' ? null : recurrence);
-        if (mounted) { setState(_load); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Appointment saved'))); }
-      } catch (error) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString()))); }
-    }
-    title.dispose(); notes.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Calendar')),
-    floatingActionButton: FloatingActionButton.extended(onPressed: _addEvent, icon: const Icon(Icons.add), label: const Text('Appointment')),
-    body: FutureBuilder<List<Map<String, Object?>>>(future: _future, builder: (context, snapshot) {
-      if (snapshot.hasError) return Center(child: Text('Could not load appointments: ${snapshot.error}'));
-      if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-      final events = snapshot.data!;
-      if (events.isEmpty) return const _EmptyState(icon: Icons.calendar_month_outlined, title: 'Make room for what matters', message: 'Add an appointment or schedule an event.');
-      return ListView.separated(padding: const EdgeInsets.fromLTRB(16, 8, 16, 90), itemCount: events.length, separatorBuilder: (_, __) => const SizedBox(height: 8), itemBuilder: (context, index) {
-        final event = events[index];
-        final starts = DateTime.fromMillisecondsSinceEpoch(event['starts_at'] as int);
-        final repeat = event['recurrence_rule'] as String?;
-        return Card(child: ListTile(leading: const Icon(Icons.event_available_outlined), title: Text(event['title'] as String), subtitle: Text('${starts.day}/${starts.month}/${starts.year} · ${starts.hour.toString().padLeft(2, '0')}:${starts.minute.toString().padLeft(2, '0')}${repeat == null ? '' : ' · Repeats $repeat'}')));
-      });
-    }),
-  );
-}
-
 class _TaskDraft {
-  const _TaskDraft(this.title, this.notes, this.dueAt);
+  const _TaskDraft(this.title, this.notes, this.dueAt, this.reminderAt);
   final String title;
   final String notes;
   final DateTime? dueAt;
+  final DateTime? reminderAt;
 }
 
 class _TaskDialog extends StatefulWidget {
@@ -508,8 +461,9 @@ class _TaskDialogState extends State<_TaskDialog> {
   late final TextEditingController _title;
   late final TextEditingController _notes;
   DateTime? _dueAt;
+  DateTime? _reminderAt;
   @override
-  void initState() { super.initState(); _title = TextEditingController(text: widget.task?.title ?? ''); _notes = TextEditingController(text: widget.task?.notes ?? ''); _dueAt = widget.task?.dueAt; }
+  void initState() { super.initState(); _title = TextEditingController(text: widget.task?.title ?? ''); _notes = TextEditingController(text: widget.task?.notes ?? ''); _dueAt = widget.task?.dueAt; _reminderAt = widget.task?.reminderAt; }
   @override
   void dispose() { _title.dispose(); _notes.dispose(); super.dispose(); }
 
@@ -523,10 +477,25 @@ class _TaskDialogState extends State<_TaskDialog> {
         OutlinedButton.icon(onPressed: () async { final picked = await showDatePicker(context: context, initialDate: _dueAt ?? DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2100)); if (picked != null) setState(() => _dueAt = DateTime(picked.year, picked.month, picked.day)); }, icon: const Icon(Icons.calendar_today), label: Text(_dueAt == null ? 'Set due date' : '${_dueAt!.day}/${_dueAt!.month}/${_dueAt!.year}')),
         if (_dueAt != null) IconButton(tooltip: 'Clear due date', onPressed: () => setState(() => _dueAt = null), icon: const Icon(Icons.close)),
       ])),
+      const SizedBox(height: 12),
+      Align(alignment: Alignment.centerLeft, child: Wrap(spacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
+        OutlinedButton.icon(
+          onPressed: () async {
+            final initial = _reminderAt ?? _dueAt ?? DateTime.now().add(const Duration(hours: 1));
+            final date = await showDatePicker(context: context, initialDate: initial, firstDate: DateTime(2020), lastDate: DateTime(2100));
+            if (date == null || !mounted) return;
+            final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(initial));
+            if (time != null) setState(() => _reminderAt = DateTime(date.year, date.month, date.day, time.hour, time.minute));
+          },
+          icon: const Icon(Icons.notifications_active_outlined),
+          label: Text(_reminderAt == null ? 'Set reminder' : 'Reminder ${_reminderAt!.day}/${_reminderAt!.month} ${_reminderAt!.hour.toString().padLeft(2, '0')}:${_reminderAt!.minute.toString().padLeft(2, '0')}'),
+        ),
+        if (_reminderAt != null) IconButton(tooltip: 'Clear reminder', onPressed: () => setState(() => _reminderAt = null), icon: const Icon(Icons.close)),
+      ])),
     ]))),
     actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')), FilledButton(onPressed: () {
       if (_title.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a task title.'))); return; }
-      Navigator.pop(context, _TaskDraft(_title.text, _notes.text, _dueAt));
+      Navigator.pop(context, _TaskDraft(_title.text, _notes.text, _dueAt, _reminderAt));
     }, child: const Text('Save'))],
   );
 }
