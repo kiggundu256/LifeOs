@@ -85,4 +85,13 @@ class ProjectRepository {
     final db=await _database.database; final now=_now();
     await db.insert('project_notes',{'project_id':projectId,'body':body,'updated_at':now},conflictAlgorithm:ConflictAlgorithm.replace);
   }
+  Future<int> addAttachment({required int projectId,required String displayName,required String storedPath,String? mimeType,required int sizeBytes}) async {
+    final db=await _database.database;
+    return db.insert('project_attachments',{'project_id':projectId,'display_name':displayName,'stored_path':storedPath,'mime_type':mimeType,'size_bytes':sizeBytes,'created_at':_now()});
+  }
+  Future<List<Map<String,Object?>>> getAttachments(int projectId) async {
+    final db=await _database.database;
+    return db.query('project_attachments',where:'project_id = ?',whereArgs:[projectId],orderBy:'created_at DESC');
+  }
+  Future<void> deleteAttachment(int id) async { final db=await _database.database; await db.delete('project_attachments',where:'id = ?',whereArgs:[id]); }
 }
