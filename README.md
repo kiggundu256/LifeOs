@@ -1,4 +1,4 @@
-# LifeOS — Phase 1 foundation
+# LifeOS — Personal productivity and knowledge workspace
 
 A local-first Flutter foundation for a private personal productivity and creative command-center Android app.
 
@@ -7,7 +7,7 @@ A local-first Flutter foundation for a private personal productivity and creativ
 - Home dashboard with open/completed task counts and quick navigation.
 - SQLite database stored in the app's private database directory.
 - Tasks: create, edit, complete/uncomplete, search, archive/restore, and delete.
-- Ideas: capture, edit, search, archive/restore, and delete.
+- Second Brain: searchable notes, folders, tags, pinning, archive/restore, and private file attachments.
 - Planner: day, week, and month views; task deadlines; event creation, editing, archiving and deletion; daily, weekly, and monthly recurrence expansion; and scheduled local reminders.
 - Database constraints and indexes, plus a versioned schema migration hook.
 - Model mapping tests.
@@ -49,7 +49,7 @@ The app includes 7-, 30-, 90-day and all-history views; completion and reopening
 3. Build Focus Guard and device usage controls.
 4. Introduce the AI assistant with explicit privacy controls and local-first defaults.
 
-## Planner and reminder behavior
+## Second Brain vault\n\n- Existing Ideas are retained and upgraded in place as notes; the SQLite v4 migration preserves their titles, bodies, archive state, and timestamps.\n- Notes can be organized into folders, tagged, pinned, searched across titles/body/tags, archived, restored, and permanently deleted.\n- File attachments are copied into the app-private `second_brain/attachments` directory; only metadata and private paths are stored in SQLite. Attachments are not uploaded to a server.\n- Attachments can be opened with a compatible Android app, added to existing notes, or removed from the vault. Deleting a note also removes its private attachment copies.\n\n## Planner and reminder behavior
 
 - Planner recurrence is expanded locally for daily, weekly, and monthly events; monthly schedules retain their original day-of-month where possible.
 - Task reminders and event reminders are scheduled as Android local notifications, restored after device reboot, and reconciled for the next 90 days whenever the Planner initializes.
@@ -63,7 +63,7 @@ The app includes 7-, 30-, 90-day and all-history views; completion and reopening
 
 ## Suggested next steps
 
-1. Expand Second Brain with private attachments and richer search.
+1. Expand the Projects workspace and global Quick Capture.
 2. Add the Projects workspace and global Quick Capture.
 3. Build Focus Guard and device usage controls.
 4. Introduce the AI assistant with explicit privacy controls and local-first defaults.
