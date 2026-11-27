@@ -16,6 +16,7 @@ class PlannerScreen extends StatefulWidget {
 class _PlannerScreenState extends State<PlannerScreen> {
   DateTime selected = DateTime.now();
   _View view = _View.week;
+  bool _showArchived = false;
   late Future<_PlannerData> future;
 
   DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
@@ -34,7 +35,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
   void _load() {
     future = Future.wait([
       widget.repository.getTasksDueBetween(_from, _to),
-      widget.repository.getEvents(from: _from.subtract(const Duration(days: 370)), to: _to),
+      widget.repository.getEvents(includeArchived: true, from: _from.subtract(const Duration(days: 370)), to: _to),
     ]).then((v) => _PlannerData(v[0] as List<LifeTask>, v[1] as List<Map<String, Object?>>));
   }
   Future<void> _refresh() async { setState(_load); await future; }
@@ -74,8 +75,8 @@ class _PlannerScreenState extends State<PlannerScreen> {
   Future<void> _eventAction(String action, Map<String,Object?> event) async {
     final id = event['id'] as int;
     if (action == 'edit') { await _edit(event); return; }
-    if (action == 'archive') {
-      await widget.repository.archiveEvent(id, true);
+    if (action == 'archive' || action == 'restore') {
+      await widget.repository.archiveEvent(id, action == 'archive');
       await ReminderService.instance.cancelEventRange(id);
       if (mounted) setState(_load);
       return;
@@ -104,15 +105,17 @@ class _PlannerScreenState extends State<PlannerScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Planner'), actions: [
+    appBar: AppBar(title: Text(_showArchived ? 'Archived events' : 'Planner'), actions: [
+      IconButton(tooltip: _showArchived ? 'Show active events' : 'Show archived events', onPressed: () => setState(() { _showArchived = !_showArchived; _load(); }), icon: Icon(_showArchived ? Icons.event_available_outlined : Icons.archive_outlined)),
       IconButton(tooltip: 'Today', onPressed: () => setState(() { selected = DateTime.now(); _load(); }), icon: const Icon(Icons.today_outlined)),
     ]),
-    floatingActionButton: FloatingActionButton.extended(onPressed: () => _edit(), icon: const Icon(Icons.add), label: const Text('New event')),
+    floatingActionButton: _showArchived ? null : FloatingActionButton.extended(onPressed: () => _edit(), icon: const Icon(Icons.add), label: const Text('New event')),
     body: FutureBuilder<_PlannerData>(future: future, builder: (context,snapshot) {
       if (snapshot.hasError) return Center(child: Text('Planner could not load: ${snapshot.error}'));
       if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
       final data = snapshot.data!;
-      final events = _expand(data.events);
+      final visibleEvents = data.events.where((event) => ((event['is_archived'] as int?) ?? 0) == (_showArchived ? 1 : 0)).toList();
+      final events = _expand(visibleEvents);
       final dayEvents = events.where((e) => _day(e.start) == _day(selected)).toList();
       final dayTasks = data.tasks.where((t) => t.dueAt != null && _day(t.dueAt!) == _day(selected)).toList();
       return RefreshIndicator(onRefresh: _refresh, child: ListView(padding: const EdgeInsets.fromLTRB(16,4,16,100), children: [
@@ -202,7 +205,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
       onTap:()=>_edit(event),
       trailing:PopupMenuButton<String>(onSelected:(v)=>_eventAction(v,event),itemBuilder:(_)=>const [
         PopupMenuItem(value:'edit',child:Text('Edit event')),
-        PopupMenuItem(value:'archive',child:Text('Archive')),
+        PopupMenuItem(value:((event['is_archived'] as int?)??0)==1?'restore':'archive',child:Text(((event['is_archived'] as int?)??0)==1?'Restore':'Archive')),
         PopupMenuItem(value:'delete',child:Text('Delete')),
       ]),
     ));
@@ -248,7 +251,7 @@ class _EventEditorState extends State<_EventEditor> {
   late DateTime start; DateTime? end; late String repeat; late int reminder;
   @override void initState(){
     super.initState(); final e=widget.event;
-    title=TextEditingController(text:e?['title'] as String? ?? ''); notes=TextEditingController(text:e?['notes'] as String???'');
+    title=TextEditingController(text:e?['title'] as String? ?? ''); notes=TextEditingController(text:e?['notes'] as String? ?? '');
     start=e==null?DateTime.now().add(const Duration(hours:1)):DateTime.fromMillisecondsSinceEpoch(e['starts_at'] as int);
     end=e?['ends_at']==null?null:DateTime.fromMillisecondsSinceEpoch(e!['ends_at'] as int);
     repeat=e?['recurrence_rule'] as String? ?? 'none'; reminder=(e?['reminder_minutes'] as int?)??0;
@@ -270,11 +273,11 @@ class _EventEditorState extends State<_EventEditor> {
       const SizedBox(height:10),TextField(controller:notes,minLines:2,maxLines:4,decoration:const InputDecoration(labelText:'Notes / location')),
       ListTile(contentPadding:EdgeInsets.zero,leading:const Icon(Icons.play_circle_outline),title:const Text('Starts'),subtitle:Text('${_fmt(start)}'),onTap:()=>pick(true)),
       ListTile(contentPadding:EdgeInsets.zero,leading:const Icon(Icons.stop_circle_outlined),title:const Text('Ends (optional)'),subtitle:Text(end==null?'No end time':_fmt(end!)),onTap:()=>pick(false),trailing:end==null?null:IconButton(onPressed:()=>setState(()=>end=null),icon:const Icon(Icons.clear))),
-      DropdownButtonFormField<String>(value:repeat,decoration:const InputDecoration(labelText:'Repeat'),items:const [
+      DropdownButtonFormField<String>(initialValue:repeat,decoration:const InputDecoration(labelText:'Repeat'),items:const [
         DropdownMenuItem(value:'none',child:Text('Does not repeat')),DropdownMenuItem(value:'daily',child:Text('Every day')),DropdownMenuItem(value:'weekly',child:Text('Every week')),DropdownMenuItem(value:'monthly',child:Text('Every month')),
       ],onChanged:(v)=>setState(()=>repeat=v??'none')),
       const SizedBox(height:10),
-      DropdownButtonFormField<int>(value:reminder,decoration:const InputDecoration(labelText:'Reminder'),items:const [
+      DropdownButtonFormField<int>(initialValue:reminder,decoration:const InputDecoration(labelText:'Reminder'),items:const [
         DropdownMenuItem(value:0,child:Text('No reminder')),DropdownMenuItem(value:5,child:Text('5 minutes before')),DropdownMenuItem(value:15,child:Text('15 minutes before')),DropdownMenuItem(value:30,child:Text('30 minutes before')),DropdownMenuItem(value:60,child:Text('1 hour before')),DropdownMenuItem(value:1440,child:Text('1 day before')),
       ],onChanged:(v)=>setState(()=>reminder=v??0)),
     ]))),
