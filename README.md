@@ -37,6 +37,10 @@ flutter run
 - Existing installations are upgraded with a versioned SQLite migration; existing tasks, ideas, and calendar events are preserved.
 - The repository exposes typed, date-filterable task completion records.
 
+## Performance & Growth dashboard
+
+The app includes 7-, 30-, 90-day and all-history views; completion and reopening counts; daily averages; active-day counts; completion trend bars; a 28-day consistency map; current and best streaks; active/archived task balance; recent activity; and completion milestones. Task history is recorded locally and is not backfilled for activity before the tracking migration.
+
 ## Next product milestones
 
 1. Add a Performance & Growth screen with daily and weekly completion charts.
