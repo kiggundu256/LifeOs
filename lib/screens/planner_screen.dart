@@ -79,6 +79,22 @@ class PlannerScreenState extends State<PlannerScreen> {
     if (action == 'archive' || action == 'restore') {
       await widget.repository.archiveEvent(id, action == 'archive');
       await ReminderService.instance.cancelEventRange(id);
+      if (action == 'restore') {
+        final reminder = (event['reminder_minutes'] as int?) ?? 0;
+        if (reminder > 0) {
+          final start = DateTime.fromMillisecondsSinceEpoch(event['starts_at'] as int);
+          final repeat = event['recurrence_rule'] as String?;
+          final dates = PlannerRecurrence.occurrences(startsAt: start, rule: repeat, from: DateTime.now(), to: DateTime.now().add(const Duration(days: 90)), limit: 90);
+          for (var index = 0; index < dates.length; index++) {
+            await ReminderService.instance.schedule(
+              id: id * 100 + index + 1,
+              title: event['title'] as String,
+              body: 'Starts in $reminder minutes',
+              at: dates[index].subtract(Duration(minutes: reminder)),
+            );
+          }
+        }
+      }
       if (mounted) setState(_load);
       return;
     }
