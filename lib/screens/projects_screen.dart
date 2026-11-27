@@ -103,8 +103,18 @@ class _ProjectDetailPageState extends State<_ProjectDetailPage>{
 
   Future<void> _addTask()async{
     final title=TextEditingController(),notes=TextEditingController();
-    final ok=await showDialog<bool>(context:context,builder:(c)=>AlertDialog(title:const Text('Add project task'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:title,autofocus:true,decoration:const InputDecoration(labelText:'Task')),TextField(controller:notes,decoration:const InputDecoration(labelText:'Notes'))]),actions:[TextButton(onPressed:()=>Navigator.pop(c,false),child:const Text('Cancel')),FilledButton(onPressed:()=>Navigator.pop(c,true),child:const Text('Add task'))]));
-    if(ok==true){try{await widget.repo.addTask(projectId:widget.project.id,title:title.text,notes:notes.text);if(mounted)setState(_load);}catch(e){_toast(e.toString());}}
+    DateTime? dueAt;
+    final ok=await showDialog<bool>(context:context,builder:(c)=>StatefulBuilder(builder:(c,setDialog)=>AlertDialog(
+      title:const Text('Add project task'),
+      content:Column(mainAxisSize:MainAxisSize.min,children:[
+        TextField(controller:title,autofocus:true,decoration:const InputDecoration(labelText:'Task')),
+        TextField(controller:notes,decoration:const InputDecoration(labelText:'Notes')),
+        const SizedBox(height:8),
+        OutlinedButton.icon(onPressed:()async{final date=await showDatePicker(context:c,initialDate:dueAt??DateTime.now(),firstDate:DateTime(2000),lastDate:DateTime(2100));if(date!=null)setDialog(()=>dueAt=date);},icon:const Icon(Icons.event),label:Text(dueAt==null?'Set task deadline':'Due ${dueAt!.day}/${dueAt!.month}/${dueAt!.year}')),
+      ]),
+      actions:[TextButton(onPressed:()=>Navigator.pop(c,false),child:const Text('Cancel')),FilledButton(onPressed:()=>Navigator.pop(c,true),child:const Text('Add task'))],
+    )));
+    if(ok==true){try{await widget.repo.addTask(projectId:widget.project.id,title:title.text,notes:notes.text,dueAt:dueAt);if(mounted)setState(_load);}catch(e){_toast(e.toString());}}
     title.dispose();notes.dispose();
   }
   Future<void> _addAttachments()async{
