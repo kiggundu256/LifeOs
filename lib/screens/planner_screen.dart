@@ -167,7 +167,7 @@ class PlannerScreenState extends State<PlannerScreen> {
       IconButton(tooltip: 'Today', onPressed: () => setState(() { selected = DateTime.now(); _load(); }), icon: const Icon(Icons.today_outlined)),
     ]),
     floatingActionButton: _showArchived ? null : FloatingActionButton.extended(onPressed: () => _edit(), icon: const Icon(Icons.add), label: const Text('New event')),
-    body: FutureBuilder<_PlannerData>(_future: _future, builder: (context,snapshot) {
+    body: FutureBuilder<_PlannerData>(future: _future, builder: (context,snapshot) {
       if (snapshot.hasError) return Center(child: Text('Planner could not load: ${snapshot.error}'));
       if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
       final data = snapshot.data!;
