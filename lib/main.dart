@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'models/idea.dart';
 import 'models/life_task.dart';
+import 'screens/performance_screen.dart';
 import 'repositories/lifeos_repository.dart';
 
 void main() => runApp(const LifeOsApp());
@@ -65,6 +66,7 @@ class LifeOsShell extends StatefulWidget {
 class _LifeOsShellState extends State<LifeOsShell> {
   int _index = 0;
   final _homeKey = GlobalKey<_HomeScreenState>();
+  final _performanceKey = GlobalKey<PerformanceScreenState>();
   final _repository = LifeosRepository();
 
   @override
@@ -74,6 +76,7 @@ class _LifeOsShellState extends State<LifeOsShell> {
       TasksScreen(repository: _repository),
       IdeasScreen(repository: _repository),
       CalendarScreen(repository: _repository),
+      PerformanceScreen(key: _performanceKey, repository: _repository),
     ];
     return Scaffold(
       body: SafeArea(child: IndexedStack(index: _index, children: pages)),
@@ -82,12 +85,14 @@ class _LifeOsShellState extends State<LifeOsShell> {
         onDestinationSelected: (value) {
           setState(() => _index = value);
           if (value == 0) _homeKey.currentState?.refreshData();
+          if (value == 4) _performanceKey.currentState?.refreshData();
         },
         destinations: const [
           NavigationDestination(icon: Icon(Icons.space_dashboard_outlined), selectedIcon: Icon(Icons.space_dashboard), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.checklist_outlined), selectedIcon: Icon(Icons.checklist), label: 'Tasks'),
           NavigationDestination(icon: Icon(Icons.lightbulb_outline), selectedIcon: Icon(Icons.lightbulb), label: 'Ideas'),
           NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Calendar'),
+          NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights), label: 'Growth'),
         ],
       ),
     );
@@ -394,12 +399,12 @@ class _IdeasScreenState extends State<IdeasScreen> {
     appBar: AppBar(title: const Text('Idea vault'), actions: [IconButton(tooltip: 'Toggle archive', onPressed: () => setState(() { _showArchived = !_showArchived; _load(); }), icon: Icon(_showArchived ? Icons.inventory_2 : Icons.archive_outlined))]),
     floatingActionButton: FloatingActionButton.extended(onPressed: () => _editIdea(), icon: const Icon(Icons.add), label: const Text('Capture idea')),
     body: Column(children: [
-      Padding(padding: const EdgeInsets.fromLTRB(16, 4, 16, 12), child: TextField(controller: _searchController, onChanged: (_) => setState(_load), decoration: InputDecoration(hintText: 'Search ideas', prefixIcon: const Icon(Icons.search), filled: true, fillColor: Colors.white))),
+      Padding(padding: const EdgeInsets.fromLTRB(16, 4, 16, 12), child: TextField(controller: _searchController, onChanged: (_) => setState(_load), decoration: const InputDecoration(hintText: 'Search ideas', prefixIcon: Icon(Icons.search), filled: true, fillColor: Colors.white))),
       Expanded(child: FutureBuilder<List<Idea>>(future: _future, builder: (context, snapshot) {
         if (snapshot.hasError) return Center(child: Text('Could not load ideas: ${snapshot.error}'));
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         final ideas = snapshot.data!;
-        if (ideas.isEmpty) return _EmptyState(icon: Icons.lightbulb_outline, title: 'Save the spark', message: 'Capture ideas before they disappear.');
+        if (ideas.isEmpty) return const _EmptyState(icon: Icons.lightbulb_outline, title: 'Save the spark', message: 'Capture ideas before they disappear.');
         return ListView.separated(padding: const EdgeInsets.fromLTRB(16, 0, 16, 90), itemCount: ideas.length, separatorBuilder: (_, __) => const SizedBox(height: 8), itemBuilder: (context, index) {
           final idea = ideas[index];
           return Card(child: ListTile(
@@ -453,7 +458,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           if (time == null) return;
           setDialogState(() => startsAt = DateTime(date.year, date.month, date.day, time.hour, time.minute));
         }),
-        DropdownButtonFormField<String>(value: recurrence, decoration: const InputDecoration(labelText: 'Repeat'), items: const [DropdownMenuItem(value: 'none', child: Text('Does not repeat')), DropdownMenuItem(value: 'daily', child: Text('Daily')), DropdownMenuItem(value: 'weekly', child: Text('Weekly')), DropdownMenuItem(value: 'monthly', child: Text('Monthly'))], onChanged: (value) => setDialogState(() => recurrence = value ?? 'none')),
+        DropdownButtonFormField<String>(initialValue: recurrence, decoration: const InputDecoration(labelText: 'Repeat'), items: const [DropdownMenuItem(value: 'none', child: Text('Does not repeat')), DropdownMenuItem(value: 'daily', child: Text('Daily')), DropdownMenuItem(value: 'weekly', child: Text('Weekly')), DropdownMenuItem(value: 'monthly', child: Text('Monthly'))], onChanged: (value) => setDialogState(() => recurrence = value ?? 'none')),
       ]))),
       actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')), FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Save'))],
     )));
