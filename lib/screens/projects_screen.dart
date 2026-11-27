@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/life_project.dart';
+import '../models/brain_attachment.dart';
+import '../services/brain_attachment_service.dart';
 import '../repositories/project_repository.dart';
 
 class ProjectsScreen extends StatefulWidget {
@@ -82,14 +84,14 @@ class _ProjectDetailPage extends StatefulWidget {
   @override State<_ProjectDetailPage> createState()=>_ProjectDetailPageState();
 }
 class _ProjectDetailPageState extends State<_ProjectDetailPage>{
-  late Future<List<Map<String,Object?>>> _tasks,_milestones;
+  late Future<List<Map<String,Object?>>> _tasks,_milestones,_attachments;
   final _notes=TextEditingController();
   bool _notesLoaded=false;
   @override void initState(){super.initState();_load();}
   @override void dispose(){_notes.dispose();super.dispose();}
-  void _load(){_tasks=widget.repo.getTasks(widget.project.id);_milestones=widget.repo.getMilestones(widget.project.id);_loadNotes();}
+  void _load(){_tasks=widget.repo.getTasks(widget.project.id);_milestones=widget.repo.getMilestones(widget.project.id);_attachments=widget.repo.getAttachments(widget.project.id);_loadNotes();}
   Future<void> _loadNotes()async{final s=await widget.repo.getProjectNotes(widget.project.id);if(mounted&&!_notesLoaded){_notes.text=s;_notesLoaded=true;}}
-  Future<void> _refresh()async{setState(_load);await Future.wait([_tasks,_milestones]);}
+  Future<void> _refresh()async{setState(_load);await Future.wait([_tasks,_milestones,_attachments]);}
   void _toast(String s)=>ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(s)));
 
   Future<void> _addTask()async{
@@ -97,6 +99,15 @@ class _ProjectDetailPageState extends State<_ProjectDetailPage>{
     final ok=await showDialog<bool>(context:context,builder:(c)=>AlertDialog(title:const Text('Add project task'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:title,autofocus:true,decoration:const InputDecoration(labelText:'Task')),TextField(controller:notes,decoration:const InputDecoration(labelText:'Notes'))]),actions:[TextButton(onPressed:()=>Navigator.pop(c,false),child:const Text('Cancel')),FilledButton(onPressed:()=>Navigator.pop(c,true),child:const Text('Add task'))]));
     if(ok==true){try{await widget.repo.addTask(projectId:widget.project.id,title:title.text,notes:notes.text);if(mounted)setState(_load);}catch(e){_toast(e.toString());}}
     title.dispose();notes.dispose();
+  }
+  Future<void> _addAttachments()async{
+    try{
+      final files=await BrainAttachmentService.instance.importFiles();
+      for(final file in files){
+        await widget.repo.addAttachment(projectId:widget.project.id,displayName:file['display_name'] as String,storedPath:file['stored_path'] as String,mimeType:file['mime_type'] as String?,sizeBytes:file['size_bytes'] as int);
+      }
+      if(files.isNotEmpty&&mounted){setState(_load);_toast('${files.length} project file(s) saved privately');}
+    }catch(e){if(mounted)_toast('Could not add project files: $e');}
   }
   Future<void> _addMilestone()async{
     final title=TextEditingController();
@@ -116,6 +127,15 @@ class _ProjectDetailPageState extends State<_ProjectDetailPage>{
       const Divider(height:28),
       const Text('PROJECT TASKS',style:TextStyle(fontWeight:FontWeight.w800,letterSpacing:1)),
       FutureBuilder<List<Map<String,Object?>>>(future:_tasks,builder:(c,s){if(!s.hasData)return const LinearProgressIndicator();if(s.data!.isEmpty)return const Padding(padding:EdgeInsets.symmetric(vertical:14),child:Text('Add the first task for this project.',style:TextStyle(color:Colors.black54)));return Column(children:s.data!.map((t)=>CheckboxListTile(contentPadding:EdgeInsets.zero,value:(t['is_complete'] as int)==1,title:Text(t['title'] as String,style:TextStyle(decoration:(t['is_complete'] as int)==1?TextDecoration.lineThrough:null)),subtitle:(t['notes'] as String).isEmpty?null:Text(t['notes'] as String),onChanged:(v)async{await widget.repo.setTaskComplete(t['id'] as int,v??false);if(mounted)setState(_load);})).toList());}),
+      const Divider(height:28),
+      Row(children:[const Expanded(child:Text('PROJECT FILES',style:TextStyle(fontWeight:FontWeight.w800,letterSpacing:1))),TextButton.icon(onPressed:_addAttachments,icon:const Icon(Icons.attach_file),label:const Text('Add files'))]),
+      FutureBuilder<List<Map<String,Object?>>>(future:_attachments,builder:(c,s){
+        if(!s.hasData)return const LinearProgressIndicator();
+        if(s.data!.isEmpty)return const Text('Keep reference documents and files alongside this project.',style:TextStyle(color:Colors.black54));
+        return Column(children:s.data!.map((row){
+          final file=BrainAttachment.fromMap(row);
+          return ListTile(contentPadding:EdgeInsets.zero,leading:const Icon(Icons.insert_drive_file_outlined),title:Text(file.displayName,maxLines:1,overflow:TextOverflow.ellipsis),subtitle:Text(file.readableSize),onTap:()async{try{await BrainAttachmentService.instance.open(file.storedPath);}catch(e){if(mounted)_toast(e.toString());}},trailing:IconButton(icon:const Icon(Icons.delete_outline),onPressed:()async{await widget.repo.deleteAttachment(file.id);await BrainAttachmentService.instance.deletePrivateCopy(file.storedPath);if(mounted)setState(_load);}));}).toList());
+      }),
       const Divider(height:28),
       const Text('PROJECT NOTES',style:TextStyle(fontWeight:FontWeight.w800,letterSpacing:1)),
       const SizedBox(height:8),
