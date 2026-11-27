@@ -89,7 +89,7 @@ class _FocusGuardScreenState extends State<FocusGuardScreen> {
           ]),
         ),
         const SizedBox(height: 20),
-        Card(child: Padding(padding: const EdgeInsets.all(17), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
+        const Card(child: Padding(padding: EdgeInsets.all(17), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [Icon(Icons.shield_outlined, color: Color(0xFF315FE7)), SizedBox(width: 9), Text('App restrictions', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16))]),
           SizedBox(height: 8),
           Text('App usage monitoring and optional blocking are the next part of Focus Guard. This first release provides a focus timer and keeps session history on this device.', style: TextStyle(color: Color(0xFF6F7B8E), height: 1.45, fontSize: 13)),
