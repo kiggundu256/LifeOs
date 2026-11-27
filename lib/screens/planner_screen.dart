@@ -34,8 +34,8 @@ class _PlannerScreenState extends State<PlannerScreen> {
   void initState() { super.initState(); _load(); }
   void _load() {
     future = Future.wait([
-      widget.repository.getTasksDueBetween(_from, _to),
-      widget.repository.getEvents(includeArchived: true, from: _from.subtract(const Duration(days: 370)), to: _to),
+      widget.repository.getTasksDueBetween(_from, _to.add(const Duration(days: 90))),
+      widget.repository.getEvents(includeArchived: true, from: _from.subtract(const Duration(days: 370)), to: _to.add(const Duration(days: 90))),
     ]).then((v) => _PlannerData(v[0] as List<LifeTask>, v[1] as List<Map<String, Object?>>));
   }
   Future<void> _refresh() async { setState(_load); await future; }
@@ -48,7 +48,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
     final items = <_Occurrence>[];
     for (final event in events) {
       final start = DateTime.fromMillisecondsSinceEpoch(event['starts_at'] as int);
-      final dates = PlannerRecurrence.occurrences(startsAt: start, rule: event['recurrence_rule'] as String?, from: _from, to: _to, limit: 100);
+      final dates = PlannerRecurrence.occurrences(startsAt: start, rule: event['recurrence_rule'] as String?, from: _from, to: _to.add(const Duration(days: 90)), limit: 100);
       final duration = event['ends_at'] == null ? null : DateTime.fromMillisecondsSinceEpoch(event['ends_at'] as int).difference(start);
       for (final date in dates) { items.add(_Occurrence(event, date, duration == null ? null : date.add(duration))); }
     }
