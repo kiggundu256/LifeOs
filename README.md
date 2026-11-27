@@ -62,11 +62,10 @@ The app includes 7-, 30-, 90-day and all-history views; completion and reopening
 
 ## Suggested next steps
 
-1. Run the three verification commands above on the development machine.
-2. Add repository-level database tests using an in-memory SQLite test adapter.
-3. Implement recurrence generation and event edit/archive/delete UI.
-4. Add attachment metadata and app-private file storage.
-5. Add task review history before implementing Performance & Growth charts.
+1. Expand Second Brain with private attachments and richer search.
+2. Add the Projects workspace and global Quick Capture.
+3. Build Focus Guard and device usage controls.
+4. Introduce the AI assistant with explicit privacy controls and local-first defaults.
 
 ## Build an APK using GitHub Actions (no local Flutter installation needed)
 
@@ -75,4 +74,4 @@ The app includes 7-, 30-, 90-day and all-history views; completion and reopening
 3. When the workflow finishes successfully, open that run and download the `lifeos-debug-apk` artifact.
 4. Extract the downloaded artifact ZIP on your phone or computer; it contains `app-debug.apk`. Transfer it to your Android phone and install it. Android may ask you to allow installs from that source.
 
-This is an unsigned debug build for personal testing, not a Play Store release. The workflow runs Flutter tests before building; if tests or compilation fail, the workflow will report the errors instead of producing an APK.
+This is an unsigned release APK for personal testing, not a Play Store release. The workflow runs Flutter tests before building; if tests or compilation fail, the workflow will report the errors instead of producing an APK.
