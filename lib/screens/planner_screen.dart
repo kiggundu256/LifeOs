@@ -271,7 +271,7 @@ class _EventEditorState extends State<_EventEditor> {
     content:SizedBox(width:440,child:SingleChildScrollView(child:Column(mainAxisSize:MainAxisSize.min,children:[
       TextField(controller:title,autofocus:true,textCapitalization:TextCapitalization.sentences,decoration:const InputDecoration(labelText:'Event title')),
       const SizedBox(height:10),TextField(controller:notes,minLines:2,maxLines:4,decoration:const InputDecoration(labelText:'Notes / location')),
-      ListTile(contentPadding:EdgeInsets.zero,leading:const Icon(Icons.play_circle_outline),title:const Text('Starts'),subtitle:Text('${_fmt(start)}'),onTap:()=>pick(true)),
+      ListTile(contentPadding:EdgeInsets.zero,leading:const Icon(Icons.play_circle_outline),title:const Text('Starts'),subtitle:Text(_fmt(start)),onTap:()=>pick(true)),
       ListTile(contentPadding:EdgeInsets.zero,leading:const Icon(Icons.stop_circle_outlined),title:const Text('Ends (optional)'),subtitle:Text(end==null?'No end time':_fmt(end!)),onTap:()=>pick(false),trailing:end==null?null:IconButton(onPressed:()=>setState(()=>end=null),icon:const Icon(Icons.clear))),
       DropdownButtonFormField<String>(initialValue:repeat,decoration:const InputDecoration(labelText:'Repeat'),items:const [
         DropdownMenuItem(value:'none',child:Text('Does not repeat')),DropdownMenuItem(value:'daily',child:Text('Every day')),DropdownMenuItem(value:'weekly',child:Text('Every week')),DropdownMenuItem(value:'monthly',child:Text('Every month')),
@@ -295,9 +295,9 @@ String _fmt(DateTime d)=>'${d.day}/${d.month}/${d.year} · ${d.hour.toString().p
 
 class _EmptySchedule extends StatelessWidget {
   const _EmptySchedule();
-  @override Widget build(BuildContext context)=>Card(child:Padding(padding:const EdgeInsets.all(24),child:Column(children:[
-    const Icon(Icons.event_available_outlined,size:36,color:Color(0xFF315FE7)),const SizedBox(height:8),
-    const Text('Nothing scheduled here',style:TextStyle(fontWeight:FontWeight.w800)),
-    const SizedBox(height:4),const Text('Add an event or set a task deadline to shape your day.',textAlign:TextAlign.center,style:TextStyle(color:Color(0xFF78849A),fontSize:12)),
+  @override Widget build(BuildContext context)=>const Card(child:Padding(padding:EdgeInsets.all(24),child:Column(children:[
+    Icon(Icons.event_available_outlined,size:36,color:Color(0xFF315FE7)),SizedBox(height:8),
+    Text('Nothing scheduled here',style:TextStyle(fontWeight:FontWeight.w800)),
+    SizedBox(height:4),Text('Add an event or set a task deadline to shape your day.',textAlign:TextAlign.center,style:TextStyle(color:Color(0xFF78849A),fontSize:12)),
   ])));
 }
