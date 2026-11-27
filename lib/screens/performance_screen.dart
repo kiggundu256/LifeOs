@@ -94,7 +94,6 @@ class PerformanceScreenState extends State<PerformanceScreen> {
       final count = _rangeDays == 30 ? 15 : 13;
       return List.generate(count, (i) {
         final start = today.subtract(Duration(days: _rangeDays - 1 - i * width));
-        final end = start.add(Duration(days: width));
         var total = 0;
         for (var offset = 0; offset < width; offset++) {
           total += daily[_key(start.add(Duration(days: offset)))] ?? 0;
@@ -208,7 +207,7 @@ class PerformanceScreenState extends State<PerformanceScreen> {
               return Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 2), child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
                 Text(bucket.count == 0 ? '' : bucket.count.toString(), style: const TextStyle(fontSize: 9, color: Color(0xFF66748B), fontWeight: FontWeight.w700)),
                 const SizedBox(height: 5),
-                Expanded(child: Align(alignment: Alignment.bottomCenter, child: FractionallySizedBox(heightFactor: factor == 0 ? 0.025 : factor, child: Container(decoration: BoxDecoration(color: bucket.count == 0 ? const Color(0xFFE9EDF5) : const Color(0xFF4770E8), borderRadius: BorderRadius.circular(7))))),
+                Expanded(child: Align(alignment: Alignment.bottomCenter, child: FractionallySizedBox(heightFactor: factor == 0 ? 0.025 : factor, child: Container(decoration: BoxDecoration(color: bucket.count == 0 ? const Color(0xFFE9EDF5) : const Color(0xFF4770E8), borderRadius: BorderRadius.circular(7)))))),
                 const SizedBox(height: 7),
                 Text(bucket.label, style: const TextStyle(fontSize: 9, color: Color(0xFF7A879A), fontWeight: FontWeight.w600)),
               ])));
