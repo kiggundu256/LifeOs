@@ -29,6 +29,8 @@ jobs:
           cache: true
       - name: Generate Android platform files
         run: flutter create --platforms=android --project-name lifeos .
+      - name: Remove generated placeholder widget test
+        run: rm -f test/widget_test.dart
       - name: Install dependencies
         run: flutter pub get
       - name: Analyze Dart code
