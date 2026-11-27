@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/ai_assistant_screen.dart';
+import 'screens/focus_guard_screen.dart';
 
 import 'models/idea.dart';
 import 'models/life_task.dart';
@@ -87,6 +88,7 @@ class _LifeOsShellState extends State<LifeOsShell> {
       PerformanceScreen(key: _performanceKey, repository: _repository),
       QuickCaptureScreen(repository: _repository),
       const AiAssistantScreen(),
+      FocusGuardScreen(repository: _repository),
     ];
     return Scaffold(
       body: SafeArea(child: IndexedStack(index: _index, children: pages)),
@@ -112,6 +114,7 @@ class _LifeOsShellState extends State<LifeOsShell> {
           NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights), label: 'Growth'),
           NavigationDestination(icon: Icon(Icons.add_circle_outline), selectedIcon: Icon(Icons.add_circle), label: 'Capture'),
           NavigationDestination(icon: Icon(Icons.auto_awesome_outlined), selectedIcon: Icon(Icons.auto_awesome), label: 'AI'),
+          NavigationDestination(icon: Icon(Icons.center_focus_strong_outlined), selectedIcon: Icon(Icons.center_focus_strong), label: 'Focus'),
         ],
       ),
     );
