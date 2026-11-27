@@ -12,7 +12,7 @@ class AppDatabase {
     final dbPath = await getDatabasesPath();
     _database = await openDatabase(
       p.join(dbPath, 'lifeos.db'),
-      version: 6,
+      version: 7,
       onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: (db, version) async {
         await db.execute('''
@@ -148,6 +148,17 @@ class AppDatabase {
         ''');
         await db.execute('CREATE INDEX idx_quick_captures_status ON quick_captures(status, updated_at DESC)');
         await db.execute('CREATE INDEX idx_quick_captures_project ON quick_captures(project_id)');
+        await db.execute('''
+          CREATE TABLE focus_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            started_at INTEGER NOT NULL,
+            ended_at INTEGER NOT NULL,
+            planned_minutes INTEGER NOT NULL CHECK(planned_minutes > 0),
+            focused_seconds INTEGER NOT NULL CHECK(focused_seconds >= 0),
+            status TEXT NOT NULL CHECK(status IN ('completed','stopped'))
+          )
+        ''');
+        await db.execute('CREATE INDEX idx_focus_sessions_started ON focus_sessions(started_at DESC)');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -239,6 +250,10 @@ class AppDatabase {
           ''');
           await db.execute('CREATE INDEX idx_quick_captures_status ON quick_captures(status, updated_at DESC)');
           await db.execute('CREATE INDEX idx_quick_captures_project ON quick_captures(project_id)');
+        }
+        if (oldVersion < 7) {
+          await db.execute('''CREATE TABLE focus_sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, started_at INTEGER NOT NULL, ended_at INTEGER NOT NULL, planned_minutes INTEGER NOT NULL CHECK(planned_minutes > 0), focused_seconds INTEGER NOT NULL CHECK(focused_seconds >= 0), status TEXT NOT NULL CHECK(status IN ('completed','stopped')))''');
+          await db.execute('CREATE INDEX idx_focus_sessions_started ON focus_sessions(started_at DESC)');
         }
       },
     );
