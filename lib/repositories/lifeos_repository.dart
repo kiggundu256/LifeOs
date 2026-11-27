@@ -2,6 +2,7 @@ import '../data/app_database.dart';
 import '../models/idea.dart';
 import '../models/life_task.dart';
 import '../models/task_completion_record.dart';
+import '../models/performance_data.dart';
 
 class LifeosRepository {
   LifeosRepository({AppDatabase? database}) : _database = database ?? AppDatabase.instance;
@@ -142,6 +143,26 @@ class LifeosRepository {
     };
   }
 
+  Future<PerformanceData> getPerformanceData() async {
+    final db = await _database.database;
+    final counts = await db.rawQuery('''
+      SELECT
+        SUM(CASE WHEN is_archived = 0 THEN 1 ELSE 0 END) AS active_tasks,
+        SUM(CASE WHEN is_archived = 0 AND is_complete = 1 THEN 1 ELSE 0 END) AS completed_tasks,
+        SUM(CASE WHEN is_archived = 0 AND is_complete = 0 THEN 1 ELSE 0 END) AS open_tasks,
+        SUM(CASE WHEN is_archived = 1 THEN 1 ELSE 0 END) AS archived_tasks
+      FROM tasks
+    ''');
+    final row = counts.single;
+    final historyRows = await db.query('task_completion_history', orderBy: 'occurred_at DESC, id DESC');
+    return PerformanceData(
+      activeTasks: (row['active_tasks'] as int?) ?? 0,
+      completedTasks: (row['completed_tasks'] as int?) ?? 0,
+      openTasks: (row['open_tasks'] as int?) ?? 0,
+      archivedTasks: (row['archived_tasks'] as int?) ?? 0,
+      activity: historyRows.map(TaskCompletionRecord.fromMap).toList(growable: false),
+    );
+  }
   Future<int> saveEvent({int? id, required String title, String notes = '', required DateTime startsAt, DateTime? endsAt, String? recurrenceRule}) async {
     final cleanTitle = title.trim();
     if (cleanTitle.isEmpty) throw ArgumentError('Event title cannot be empty.');
