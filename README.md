@@ -10,6 +10,7 @@ A local-first Flutter foundation for a private personal productivity and creativ
 - Second Brain: searchable notes, folders, tags, pinning, archive/restore, and private file attachments.
 - Planner: day, week, and month views; task deadlines; event creation, editing, archiving and deletion; daily, weekly, and monthly recurrence expansion; and scheduled local reminders.
 - Database constraints and indexes, plus a versioned schema migration hook.
+- Quick Capture inbox for rapidly saving tasks, notes and scheduled events before organising them.
 - Model mapping tests.
 
 ## Requirements
@@ -85,3 +86,13 @@ The app includes 7-, 30-, 90-day and all-history views; completion and reopening
 4. Transfer the APK to your Android phone and install it. Android may ask you to allow installs from that source.
 
 This is a personal-use release APK, not a Play Store production-signed build. The workflow runs Flutter tests before building; if tests or compilation fail, the workflow will report the errors instead of producing an APK.
+
+
+## Quick Capture inbox
+
+- Capture tasks, notes and scheduled events into a dedicated local inbox without deciding where they belong immediately.
+- Add optional due dates, task reminders, event start times and project associations at capture time.
+- Search and filter inbox, processed and archived captures; edit, archive, restore or delete captures.
+- Convert captures into real Tasks, Second Brain notes or Planner events. Task conversion preserves due/reminder times and project links; event conversion schedules its local notification.
+- Captures remain in the inbox history after conversion, with a link to the created item recorded for traceability.
+- SQLite v6 adds the capture inbox and indexes without changing or deleting existing LifeOS data. All capture content remains in the app's private local database.
