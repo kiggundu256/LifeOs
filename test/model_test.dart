@@ -3,8 +3,29 @@ import 'package:lifeos/models/idea.dart';
 import 'package:lifeos/models/life_task.dart';
 import 'package:lifeos/models/task_completion_record.dart';
 import 'package:lifeos/models/performance_data.dart';
+import 'package:lifeos/models/planner_recurrence.dart';
 
 void main() {
+  group('PlannerRecurrence', () {
+    test('expands daily and weekly events within the selected range', () {
+      final start = DateTime(2026, 11, 1, 9);
+      final dates = PlannerRecurrence.occurrences(startsAt: start, rule: 'daily', from: DateTime(2026, 11, 3), to: DateTime(2026, 11, 6));
+      expect(dates, [DateTime(2026, 11, 3, 9), DateTime(2026, 11, 4, 9), DateTime(2026, 11, 5, 9)]);
+      final weekly = PlannerRecurrence.occurrences(startsAt: start, rule: 'weekly', from: DateTime(2026, 11, 1), to: DateTime(2026, 12, 1));
+      expect(weekly.length, 5);
+    });
+
+    test('monthly recurrence clamps to month end without drifting anchor day', () {
+      final dates = PlannerRecurrence.occurrences(startsAt: DateTime(2026, 1, 31, 8), rule: 'monthly', from: DateTime(2026, 1, 1), to: DateTime(2026, 5, 1));
+      expect(dates, [DateTime(2026, 1, 31, 8), DateTime(2026, 2, 28, 8), DateTime(2026, 3, 31, 8), DateTime(2026, 4, 30, 8)]);
+    });
+
+    test('one-off events appear only when inside the range', () {
+      final dates = PlannerRecurrence.occurrences(startsAt: DateTime(2026, 11, 5), rule: null, from: DateTime(2026, 11, 1), to: DateTime(2026, 11, 5));
+      expect(dates, isEmpty);
+    });
+  });
+
   group('LifeTask.fromMap', () {
     test('maps stored values and nullable due date', () {
       final created = DateTime(2026, 10, 26, 10).millisecondsSinceEpoch;
@@ -78,3 +99,6 @@ void main() {
     });
   });
 }
+
+
+
