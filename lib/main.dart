@@ -69,15 +69,16 @@ class _LifeOsShellState extends State<LifeOsShell> {
   int _index = 0;
   final _homeKey = GlobalKey<_HomeScreenState>();
   final _performanceKey = GlobalKey<PerformanceScreenState>();
+  final _plannerKey = GlobalKey<PlannerScreenState>();
   final _repository = LifeosRepository();
 
   @override
   Widget build(BuildContext context) {
     final pages = <Widget>[
-      HomeScreen(key: _homeKey, repository: _repository, onNavigate: (index) => setState(() => _index = index)),
+      HomeScreen(key: _homeKey, repository: _repository, onNavigate: (index) { setState(() => _index = index); if (index == 3) _plannerKey.currentState?.refreshData(); }),
       TasksScreen(repository: _repository),
       IdeasScreen(repository: _repository),
-      PlannerScreen(repository: _repository),
+      PlannerScreen(key: _plannerKey, repository: _repository),
       PerformanceScreen(key: _performanceKey, repository: _repository),
     ];
     return Scaffold(
@@ -87,6 +88,7 @@ class _LifeOsShellState extends State<LifeOsShell> {
         onDestinationSelected: (value) {
           setState(() => _index = value);
           if (value == 0) _homeKey.currentState?.refreshData();
+          if (value == 3) _plannerKey.currentState?.refreshData();
           if (value == 4) _performanceKey.currentState?.refreshData();
         },
         destinations: const [
