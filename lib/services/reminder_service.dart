@@ -8,22 +8,25 @@ class ReminderService {
   final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
   bool _ready = false;
 
-  Future<void> initialize() async {
-    if (_ready) return;
-    tz_data.initializeTimeZones();
-    const settings = InitializationSettings(android: AndroidInitializationSettings('@mipmap/ic_launcher'));
-    await _plugin.initialize(settings);
-    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    await android?.requestNotificationsPermission();
-    _ready = true;
+  Future<void> initialize({bool requestPermission = false}) async {
+    if (!_ready) {
+      tz_data.initializeTimeZones();
+      const settings = InitializationSettings(android: AndroidInitializationSettings('@mipmap/ic_launcher'));
+      await _plugin.initialize(settings);
+      _ready = true;
+    }
+    if (requestPermission) {
+      final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      await android?.requestNotificationsPermission();
+    }
   }
 
   Future<void> schedule({required int id, required String title, required String body, required DateTime at}) async {
-    await initialize();
     if (!at.isAfter(DateTime.now())) {
       await cancel(id);
       return;
     }
+    await initialize(requestPermission: true);
     await _plugin.zonedSchedule(
       id,
       title,
