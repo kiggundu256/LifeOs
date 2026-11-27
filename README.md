@@ -52,7 +52,7 @@ The app includes 7-, 30-, 90-day and all-history views; completion and reopening
 ## Planner and reminder behavior
 
 - Planner recurrence is expanded locally for daily, weekly, and monthly events; monthly schedules retain their original day-of-month where possible.
-- Task reminders and event reminders are scheduled as Android local notifications and are configured to be restored after device reboot.
+- Task reminders and event reminders are scheduled as Android local notifications, restored after device reboot, and reconciled for the next 90 days whenever the Planner initializes.
 - Android notification permission is requested when a reminder is first scheduled. Delivery time can still be affected by device battery restrictions and notification settings.
 
 ## Important scope notes
