@@ -68,5 +68,23 @@ void main() {
     exitCode = 1;
     return;
   }
-  stdout.writeln('Android local notifications and Java desugaring configured.');
+
+  const mavenMirror = 'maven { url = uri("https://maven-central.storage-download.googleapis.com/maven2/") }';
+  final settingsGradle = File('android/settings.gradle.kts');
+  if (settingsGradle.existsSync()) {
+    var settings = settingsGradle.readAsStringSync();
+    if (!settings.contains(mavenMirror)) {
+      settings = settings.replaceFirst('repositories {', 'repositories {\\n        $mavenMirror');
+      settingsGradle.writeAsStringSync(settings);
+    }
+  }
+  final rootGradle = File('android/build.gradle.kts');
+  if (rootGradle.existsSync()) {
+    var root = rootGradle.readAsStringSync();
+    if (!root.contains(mavenMirror)) {
+      root = root.replaceFirst('repositories {', 'repositories {\\n        $mavenMirror');
+      rootGradle.writeAsStringSync(root);
+    }
+  }
+  stdout.writeln('Android local notifications, Java desugaring, and Maven mirror configured.');
 }
