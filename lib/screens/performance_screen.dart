@@ -33,7 +33,7 @@ class PerformanceScreenState extends State<PerformanceScreen> {
 
   DateTime _day(DateTime date) => DateTime(date.year, date.month, date.day);
   int _key(DateTime date) => _day(date).millisecondsSinceEpoch;
-  String _date(DateTime date) => date.day.toString() + '/' + date.month.toString();
+  String _date(DateTime date) => '${date.day}/${date.month}';
   String _month(int value) => const ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][value - 1];
 
   List<TaskCompletionRecord> _periodRecords(PerformanceData data, DateTime now) {
@@ -134,7 +134,7 @@ class PerformanceScreenState extends State<PerformanceScreen> {
       body: FutureBuilder<PerformanceData>(
         future: _future,
         builder: (context, snapshot) {
-          if (snapshot.hasError) return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('Could not load your progress: ' + snapshot.error.toString(), textAlign: TextAlign.center)));
+          if (snapshot.hasError) return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('Could not load your progress: ${snapshot.error}', textAlign: TextAlign.center)));
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           return _dashboard(snapshot.data!);
         },
@@ -183,7 +183,7 @@ class PerformanceScreenState extends State<PerformanceScreen> {
           _rangePicker(),
           const SizedBox(height: 14),
           Row(children: [
-            Expanded(child: _metric('Completed', completed.toString(), Icons.check_circle_outline, const Color(0xFF23865A), difference == null ? 'In selected period' : (difference >= 0 ? '+' : '') + difference.toString() + ' vs previous')),
+            Expanded(child: _metric('Completed', completed.toString(), Icons.check_circle_outline, const Color(0xFF23865A), difference == null ? 'In selected period' : '${difference >= 0 ? '+' : ''}$difference vs previous')),
             const SizedBox(width: 10),
             Expanded(child: _metric('Reopened', reopened.toString(), Icons.replay_rounded, const Color(0xFFB7791F), 'Returned to open')),
           ]),
@@ -199,7 +199,7 @@ class PerformanceScreenState extends State<PerformanceScreen> {
           _panel(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               const Text('Tasks completed', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF27344B))),
-              Text(completed.toString() + ' total', style: const TextStyle(fontSize: 12, color: Color(0xFF778397), fontWeight: FontWeight.w700)),
+              Text('$completed total', style: const TextStyle(fontSize: 12, color: Color(0xFF778397), fontWeight: FontWeight.w700)),
             ]),
             const SizedBox(height: 18),
             SizedBox(height: 150, child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: buckets.map((bucket) {
@@ -228,14 +228,14 @@ class PerformanceScreenState extends State<PerformanceScreen> {
               final date = _day(now).subtract(Duration(days: 27 - index));
               final count = daily[_key(date)] ?? 0;
               final color = count == 0 ? const Color(0xFFEEF1F6) : count == 1 ? const Color(0xFFC8D5FF) : count <= 3 ? const Color(0xFF8EA8F7) : const Color(0xFF315FE7);
-              return Tooltip(message: _date(date) + ': ' + count.toString() + ' completed', child: Container(width: 25, height: 25, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(6))));
+              return Tooltip(message: '${_date(date)}: $count completed', child: Container(width: 25, height: 25, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(6))));
             })),
             const SizedBox(height: 16),
             Row(children: [
-              Expanded(child: _smallStat('Current streak', streak.toString() + ' days')),
-              Expanded(child: _smallStat('Best streak', best.toString() + ' days')),
+              Expanded(child: _smallStat('Current streak', '$streak days')),
+              Expanded(child: _smallStat('Best streak', '$best days')),
               Expanded(child: _smallStat('Active days', activeDays.toString())),
-              Expanded(child: _smallStat('Best day', bestDayEntry == null ? '—' : bestDayEntry.value.toString() + ' on ' + _date(DateTime.fromMillisecondsSinceEpoch(bestDayEntry.key)))),
+              Expanded(child: _smallStat('Best day', bestDayEntry == null ? '—' : '${bestDayEntry.value} on ${_date(DateTime.fromMillisecondsSinceEpoch(bestDayEntry.key))}')),
             ]),
           ])),
           const SizedBox(height: 22),
@@ -244,7 +244,7 @@ class PerformanceScreenState extends State<PerformanceScreen> {
           _panel(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               const Text('Active task completion', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF27344B))),
-              Text((data.activeTasks == 0 ? 0 : (data.completedTasks / data.activeTasks * 100).round()).toString() + '%', style: const TextStyle(fontSize: 14, color: Color(0xFF315FE7), fontWeight: FontWeight.w900)),
+              Text('${data.activeTasks == 0 ? 0 : (data.completedTasks / data.activeTasks * 100).round()}%', style: const TextStyle(fontSize: 14, color: Color(0xFF315FE7), fontWeight: FontWeight.w900)),
             ]),
             const SizedBox(height: 10),
             ClipRRect(borderRadius: BorderRadius.circular(8), child: LinearProgressIndicator(value: data.activeTasks == 0 ? 0 : data.completedTasks / data.activeTasks, minHeight: 10, backgroundColor: const Color(0xFFE9EDF5), valueColor: const AlwaysStoppedAnimation(Color(0xFF315FE7)))),
@@ -314,9 +314,9 @@ class PerformanceScreenState extends State<PerformanceScreen> {
       const Text('tracked task completions', style: TextStyle(color: Color(0xFFE2E9FF), fontSize: 13)),
       const SizedBox(height: 17),
       Row(children: [
-        _heroMetric(Icons.local_fire_department_rounded, streak.toString() + ' day streak', 'CURRENT'),
+        _heroMetric(Icons.local_fire_department_rounded, '$streak day streak', 'CURRENT'),
         const SizedBox(width: 22),
-        _heroMetric(Icons.emoji_events_outlined, best.toString() + ' days', 'BEST STREAK'),
+        _heroMetric(Icons.emoji_events_outlined, '$best days', 'BEST STREAK'),
       ]),
     ]),
   );
@@ -359,13 +359,13 @@ class PerformanceScreenState extends State<PerformanceScreen> {
     Text(value.toString(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF27344B))),
   ]);
 
-  String _rangeLabel() => _rangeDays == 0 ? 'All recorded history' : 'Last ' + _rangeDays.toString() + ' days';
+  String _rangeLabel() => _rangeDays == 0 ? 'All recorded history' : 'Last $_rangeDays days';
 
   String _relative(DateTime date, DateTime now) {
     final difference = _day(now).difference(_day(date)).inDays;
     if (difference == 0) return 'Today';
     if (difference == 1) return 'Yesterday';
-    if (difference < 7) return difference.toString() + ' days ago';
+    if (difference < 7) return '$difference days ago';
     return _date(date);
   }
 }
