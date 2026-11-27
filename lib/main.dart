@@ -491,9 +491,9 @@ class _TaskDialogState extends State<_TaskDialog> {
           onPressed: () async {
             final initial = _reminderAt ?? _dueAt ?? DateTime.now().add(const Duration(hours: 1));
             final date = await showDatePicker(context: context, initialDate: initial, firstDate: DateTime(2020), lastDate: DateTime(2100));
-            if (date == null || !mounted) return;
+            if (date == null || !context.mounted) return;
             final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(initial));
-            if (time != null && mounted) setState(() => _reminderAt = DateTime(date.year, date.month, date.day, time.hour, time.minute));
+            if (time != null && context.mounted) setState(() => _reminderAt = DateTime(date.year, date.month, date.day, time.hour, time.minute));
           },
           icon: const Icon(Icons.notifications_active_outlined),
           label: Text(_reminderAt == null ? 'Set reminder' : 'Reminder ${_reminderAt!.day}/${_reminderAt!.month} ${_reminderAt!.hour.toString().padLeft(2, '0')}:${_reminderAt!.minute.toString().padLeft(2, '0')}'),
