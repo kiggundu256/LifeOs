@@ -303,7 +303,7 @@ class _TasksScreenState extends State<TasksScreen> {
     if (result == null) return;
     try {
       final id = await widget.repository.saveTask(id: task?.id, title: result.title, notes: result.notes, dueAt: result.dueAt, reminderAt: result.reminderAt);
-      if (result.reminderAt != null) {
+      if (result.reminderAt != null && !(task?.isComplete ?? false)) {
         await ReminderService.instance.schedule(id: 1000000000 + id, title: result.title, body: 'Task reminder', at: result.reminderAt!);
       } else {
         await ReminderService.instance.cancelTask(id);
@@ -355,7 +355,7 @@ class _TasksScreenState extends State<TasksScreen> {
             subtitle: task.notes.isEmpty ? null : Text(task.notes, maxLines: 2, overflow: TextOverflow.ellipsis),
             trailing: PopupMenuButton<String>(onSelected: (action) async {
               if (action == 'edit') await _editTask(task);
-              if (action == 'archive') { await widget.repository.archiveTask(task.id, !_showArchived); if (mounted) setState(_load); }
+              if (action == 'archive') { await widget.repository.archiveTask(task.id, !_showArchived); await ReminderService.instance.cancelTask(task.id); if (mounted) setState(_load); }
               if (action == 'delete') await _delete(task);
             }, itemBuilder: (_) => [
               if (!_showArchived) const PopupMenuItem(value: 'edit', child: Text('Edit')),
