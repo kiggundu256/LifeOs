@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lifeos/models/idea.dart';
 import 'package:lifeos/models/life_task.dart';
+import 'package:lifeos/models/task_completion_record.dart';
 
 void main() {
   group('LifeTask.fromMap', () {
@@ -55,3 +56,16 @@ void main() {
     expect(idea.isArchived, isTrue);
   });
 }
+
+
+group('TaskCompletionRecord.fromMap', () {
+  test('maps a completed task activity', () {
+    final occurred = DateTime(2026, 11, 27, 9).millisecondsSinceEpoch;
+    final record = TaskCompletionRecord.fromMap({'id': 4, 'task_id': 12, 'task_title': 'Finish LifeOS', 'action': 'completed', 'occurred_at': occurred});
+    expect(record.id, 4);
+    expect(record.taskId, 12);
+    expect(record.taskTitle, 'Finish LifeOS');
+    expect(record.isCompletion, isTrue);
+    expect(record.occurredAt, DateTime.fromMillisecondsSinceEpoch(occurred));
+  });
+});
