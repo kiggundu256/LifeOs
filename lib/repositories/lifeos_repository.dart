@@ -195,8 +195,8 @@ class LifeosRepository {
     if (!includeArchived) clauses.add('is_archived = 0');
     if (to != null) { clauses.add('starts_at <= ?'); args.add(to.millisecondsSinceEpoch); }
     if (from != null) {
-      clauses.add('(starts_at >= ? OR recurrence_rule IS NOT NULL)');
-      args.add(from.millisecondsSinceEpoch);
+      clauses.add('(starts_at >= ? OR (ends_at IS NOT NULL AND ends_at >= ?) OR recurrence_rule IS NOT NULL)');
+      args..add(from.millisecondsSinceEpoch)..add(from.millisecondsSinceEpoch);
     }
     return db.query('events', where: clauses.isEmpty ? null : clauses.join(' AND '), whereArgs: args, orderBy: 'starts_at ASC');
   }
