@@ -18,7 +18,7 @@ class PlannerRecurrence {
       return result;
     }
     var safety = 0;
-    while (current.isBefore(from) && safety++ < 20000) current = advance();
+    while (current.isBefore(from) && safety++ < 20000) { current = advance(); }
     while (!current.isBefore(from) && current.isBefore(to) && result.length < limit && safety++ < 20000) {
       result.add(current);
       current = advance();
