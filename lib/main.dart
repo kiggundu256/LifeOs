@@ -88,6 +88,11 @@ class _LifeOsShellState extends State<LifeOsShell> {
     ];
     return Scaffold(
       body: SafeArea(child: IndexedStack(index: _index, children: pages)),
+      floatingActionButton: _index == 6 ? null : FloatingActionButton.small(
+        tooltip: 'Quick Capture',
+        onPressed: () => setState(() => _index = 6),
+        child: const Icon(Icons.add_rounded),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (value) {
