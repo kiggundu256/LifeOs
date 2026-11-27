@@ -29,6 +29,28 @@ jobs:
           cache: true
       - name: Generate Android platform files
         run: flutter create --platforms=android --project-name lifeos .
+      - name: Configure Android scheduled notifications
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          content = manifest.read_text()
+          permission = '    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />'
+          if permission not in content:
+              content = content.replace('    <application', permission + '\\n    <application', 1)
+          receivers = """        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+                  <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+                      <intent-filter>
+                          <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                          <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                          <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                          <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+                      </intent-filter>
+                  </receiver>"""
+          if "ScheduledNotificationBootReceiver" not in content:
+              content = content.replace('</application>', receivers + '\\n    </application>', 1)
+          manifest.write_text(content)
+          PY
       - name: Remove generated placeholder widget test
         run: rm -f test/widget_test.dart
       - name: Install dependencies
