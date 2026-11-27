@@ -198,7 +198,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
     return Card(margin:const EdgeInsets.only(bottom:8),child:ListTile(
       leading:Container(width:40,height:40,decoration:BoxDecoration(color:const Color(0xFFEAF0FF),borderRadius:BorderRadius.circular(13)),child:const Icon(Icons.event_available_outlined,color:Color(0xFF315FE7))),
       title:Text(event['title'] as String,style:const TextStyle(fontWeight:FontWeight.w700)),
-      subtitle:Text('${_time(item.start)}${item.end==null?'':' – ${_time(item.end!)}'${reminder==0?'':' · Reminder $reminder min before'}'),
+      subtitle:Text('${_time(item.start)}${item.end==null ? '' : ' – ${_time(item.end!)}'}${reminder==0 ? '' : ' · Reminder $reminder min before'}'),
       onTap:()=>_edit(event),
       trailing:PopupMenuButton<String>(onSelected:(v)=>_eventAction(v,event),itemBuilder:(_)=>const [
         PopupMenuItem(value:'edit',child:Text('Edit event')),
@@ -248,10 +248,10 @@ class _EventEditorState extends State<_EventEditor> {
   late DateTime start; DateTime? end; late String repeat; late int reminder;
   @override void initState(){
     super.initState(); final e=widget.event;
-    title=TextEditingController(text:e?['title'] as String???''); notes=TextEditingController(text:e?['notes'] as String???'');
+    title=TextEditingController(text:e?['title'] as String? ?? ''); notes=TextEditingController(text:e?['notes'] as String???'');
     start=e==null?DateTime.now().add(const Duration(hours:1)):DateTime.fromMillisecondsSinceEpoch(e['starts_at'] as int);
     end=e?['ends_at']==null?null:DateTime.fromMillisecondsSinceEpoch(e!['ends_at'] as int);
-    repeat=e?['recurrence_rule'] as String???'none'; reminder=(e?['reminder_minutes'] as int?)??0;
+    repeat=e?['recurrence_rule'] as String? ?? 'none'; reminder=(e?['reminder_minutes'] as int?)??0;
   }
   @override void dispose(){title.dispose();notes.dispose();super.dispose();}
   Future<void> pick(bool isStart) async {
