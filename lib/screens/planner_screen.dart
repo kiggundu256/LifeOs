@@ -35,7 +35,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
   void _load() {
     future = Future.wait([
       widget.repository.getTasksDueBetween(_from, _to.add(const Duration(days: 90))),
-      widget.repository.getEvents(includeArchived: true, from: _from.subtract(const Duration(days: 370)), to: _to.add(const Duration(days: 90))),
+      widget.repository.getEvents(includeArchived: true, from: _showArchived ? null : _from.subtract(const Duration(days: 370)), to: _showArchived ? null : _to.add(const Duration(days: 90))),
     ]).then((v) => _PlannerData(v[0] as List<LifeTask>, v[1] as List<Map<String, Object?>>));
   }
   Future<void> _refresh() async { setState(_load); await future; }
@@ -185,7 +185,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
       GridView.builder(shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),itemCount:42,gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:7,mainAxisSpacing:4,crossAxisSpacing:4,childAspectRatio:.9),itemBuilder:(context,i){
         final date=start.add(Duration(days:i)); final active=_day(date)==_day(selected); final inMonth=date.month==selected.month;
         final count=events.where((e)=>_day(e.start)==_day(date)).length+tasks.where((t)=>t.dueAt!=null&&_day(t.dueAt!)==_day(date)).length;
-        return InkWell(borderRadius:BorderRadius.circular(10),onTap:()=>setState(()=>selected=date),
+        return InkWell(borderRadius:BorderRadius.circular(10),onTap:()=>setState(() { selected=date; _load(); }),
           child:Container(decoration:BoxDecoration(color:active?const Color(0xFF315FE7):(inMonth?Colors.white:const Color(0xFFF1F3F8)),borderRadius:BorderRadius.circular(10),border:Border.all(color:active?const Color(0xFF315FE7):const Color(0xFFE9EDF4))),
             child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
               Text('${date.day}',style:TextStyle(fontSize:12,fontWeight:FontWeight.w700,color:active?Colors.white:(inMonth?const Color(0xFF28344A):const Color(0xFFB1B8C5)))),
