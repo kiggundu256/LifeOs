@@ -15,7 +15,7 @@ void main() {
   for (final permission in permissions) {
     final name = permission.split('"')[1];
     if (!xml.contains(name)) {
-      xml = xml.replaceFirst('    <application', '$permission\\n    <application');
+      xml = xml.replaceFirst('    <application', '$permission\n    <application');
     }
   }
   const receivers = '''
@@ -29,7 +29,7 @@ void main() {
             </intent-filter>
         </receiver>''';
   if (!xml.contains('ScheduledNotificationBootReceiver')) {
-    xml = xml.replaceFirst('</application>', '$receivers\\n    </application>');
+    xml = xml.replaceFirst('</application>', '$receivers\n    </application>');
   }
   manifest.writeAsStringSync(xml);
 
@@ -38,33 +38,33 @@ void main() {
   if (kotlinGradle.existsSync()) {
     var gradle = kotlinGradle.readAsStringSync();
     if (!gradle.contains('isCoreLibraryDesugaringEnabled')) {
-      gradle = gradle.replaceFirst('compileOptions {', 'compileOptions {\\n        isCoreLibraryDesugaringEnabled = true');
+      gradle = gradle.replaceFirst('compileOptions {', 'compileOptions {\n        isCoreLibraryDesugaringEnabled = true');
     }
     gradle = gradle.replaceAll('JavaVersion.VERSION_11', 'JavaVersion.VERSION_17');
     if (!gradle.contains('jvmTarget = JavaVersion.VERSION_17.toString()')) {
-      gradle = gradle.replaceFirst('kotlinOptions {', 'kotlinOptions {\\n        jvmTarget = JavaVersion.VERSION_17.toString()');
+      gradle = gradle.replaceFirst('kotlinOptions {', 'kotlinOptions {\n        jvmTarget = JavaVersion.VERSION_17.toString()');
     }
     if (!gradle.contains('multiDexEnabled = true')) {
-      gradle = gradle.replaceFirst('defaultConfig {', 'defaultConfig {\\n        multiDexEnabled = true');
+      gradle = gradle.replaceFirst('defaultConfig {', 'defaultConfig {\n        multiDexEnabled = true');
     }
     if (!gradle.contains('coreLibraryDesugaring(')) {
       if (gradle.contains('dependencies {')) {
-        gradle = gradle.replaceFirst('dependencies {', 'dependencies {\\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")');
+        gradle = gradle.replaceFirst('dependencies {', 'dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")');
       } else {
-        gradle += '\\n\\ndependencies {\\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\\n}\\n';
+        gradle += '\n\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n}\n';
       }
     }
     kotlinGradle.writeAsStringSync(gradle);
   } else if (groovyGradle.existsSync()) {
     var gradle = groovyGradle.readAsStringSync();
     if (!gradle.contains('coreLibraryDesugaringEnabled true')) {
-      gradle = gradle.replaceFirst('compileOptions {', 'compileOptions {\\n        coreLibraryDesugaringEnabled true\\n        sourceCompatibility JavaVersion.VERSION_17\\n        targetCompatibility JavaVersion.VERSION_17');
+      gradle = gradle.replaceFirst('compileOptions {', 'compileOptions {\n        coreLibraryDesugaringEnabled true\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17');
     }
     if (!gradle.contains('coreLibraryDesugaring ')) {
       if (gradle.contains('dependencies {')) {
-        gradle = gradle.replaceFirst('dependencies {', "dependencies {\\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'");
+        gradle = gradle.replaceFirst('dependencies {', "dependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'");
       } else {
-        gradle += "\\n\\ndependencies {\\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'\\n}\\n";
+        gradle += "\n\ndependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'\n}\n";
       }
     }
     groovyGradle.writeAsStringSync(gradle);
