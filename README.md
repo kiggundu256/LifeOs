@@ -23,7 +23,8 @@ A local-first Flutter foundation for a private personal productivity and creativ
 From this directory, first generate the Android platform folder if it is not present (this source bundle intentionally focuses on the app code):
 
 ```bash
-flutter create --platforms=android .
+flutter create --platforms=android --project-name lifeos .
+dart tool/configure_android_notifications.dart
 flutter pub get
 flutter analyze
 flutter test
