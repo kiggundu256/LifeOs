@@ -10,10 +10,10 @@ class PlannerScreen extends StatefulWidget {
   const PlannerScreen({super.key, required this.repository});
   final LifeosRepository repository;
   @override
-  State<PlannerScreen> createState() => _PlannerScreenState();
+  State<PlannerScreen> createState() => PlannerScreenState();
 }
 
-class _PlannerScreenState extends State<PlannerScreen> {
+class PlannerScreenState extends State<PlannerScreen> {
   DateTime selected = DateTime.now();
   _View view = _View.week;
   bool _showArchived = false;
@@ -39,6 +39,7 @@ class _PlannerScreenState extends State<PlannerScreen> {
     ]).then((v) => _PlannerData(v[0] as List<LifeTask>, v[1] as List<Map<String, Object?>>));
   }
   Future<void> _refresh() async { setState(_load); await future; }
+  Future<void> refreshData() => _refresh();
   void _navigate(int amount) => setState(() {
     selected = view == _View.month ? DateTime(selected.year, selected.month + amount, 1) : selected.add(Duration(days: amount * (view == _View.week ? 7 : 1)));
     _load();
