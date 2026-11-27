@@ -74,7 +74,7 @@ void main() {
   if (settingsGradle.existsSync()) {
     var settings = settingsGradle.readAsStringSync();
     if (!settings.contains(mavenMirror)) {
-      settings = settings.replaceFirst('repositories {', 'repositories {\n        $mavenMirror');
+      settings = settings.replaceFirst('mavenCentral()', 'mavenCentral()\n        $mavenMirror');
       settingsGradle.writeAsStringSync(settings);
     }
   }
