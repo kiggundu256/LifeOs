@@ -8,9 +8,15 @@ void main() {
     return;
   }
   var xml = manifest.readAsStringSync();
-  const permission = '    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />';
-  if (!xml.contains(permission)) {
-    xml = xml.replaceFirst('    <application', '$permission\n    <application');
+  const permissions = [
+    '    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />',
+    '    <uses-permission android:name="android.permission.INTERNET" />',
+  ];
+  for (final permission in permissions) {
+    final name = permission.split('"')[1];
+    if (!xml.contains(name)) {
+      xml = xml.replaceFirst('    <application', '$permission\n    <application');
+    }
   }
   const receivers = '''
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
@@ -35,7 +41,6 @@ void main() {
       gradle = gradle.replaceFirst('compileOptions {', 'compileOptions {\n        isCoreLibraryDesugaringEnabled = true');
     }
     gradle = gradle.replaceAll('JavaVersion.VERSION_11', 'JavaVersion.VERSION_17');
-    gradle = gradle.replaceAll('JavaVersion.VERSION_17.toString()', 'JavaVersion.VERSION_17.toString()');
     if (!gradle.contains('jvmTarget = JavaVersion.VERSION_17.toString()')) {
       gradle = gradle.replaceFirst('kotlinOptions {', 'kotlinOptions {\n        jvmTarget = JavaVersion.VERSION_17.toString()');
     }
@@ -69,5 +74,5 @@ void main() {
     return;
   }
 
-  stdout.writeln('Android local notifications and Java desugaring configured.');
+  stdout.writeln('Android notifications, network access and Java desugaring configured.');
 }
