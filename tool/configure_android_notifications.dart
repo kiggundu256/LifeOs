@@ -97,7 +97,7 @@ void main() {
     return;
   }
   final packageName = packageMatch.group(1)!;
-  final kotlin = r'''package @@PACKAGE@@
+  final kotlin = '''package @@PACKAGE@@
 
 import android.app.AppOpsManager
 import android.app.usage.UsageStatsManager
@@ -167,7 +167,7 @@ class MainActivity : FlutterActivity() {
     }
 }
 '''
-  activityFile.writeText(kotlin.replace('@@PACKAGE@@', packageName));
+  activityFile.writeAsStringSync(kotlin.replaceAll('@@PACKAGE@@', packageName));
 
   stdout.writeln('Android notifications, network access, usage monitoring and Java desugaring configured.');
 }
