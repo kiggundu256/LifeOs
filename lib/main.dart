@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'screens/ai_assistant_screen.dart';
+
 import 'models/idea.dart';
 import 'models/life_task.dart';
-import 'screens/ai_assistant_screen.dart';
 import 'screens/performance_screen.dart';
 import 'screens/planner_screen.dart';
 import 'screens/brain_vault_screen.dart';
@@ -11,46 +12,569 @@ import 'services/reminder_service.dart';
 import 'repositories/lifeos_repository.dart';
 
 void main() => runApp(const LifeOsApp());
+
 class LifeOsApp extends StatelessWidget {
   const LifeOsApp({super.key});
-  @override Widget build(BuildContext context) {
-    const seed=Color(0xFF4567D7);
-    return MaterialApp(title:'LifeOS',debugShowCheckedModeBanner:false,theme:ThemeData(
-      useMaterial3:true,colorScheme:ColorScheme.fromSeed(seedColor:seed,brightness:Brightness.light),
-      scaffoldBackgroundColor:const Color(0xFFF6F8FC),canvasColor:const Color(0xFFF6F8FC),
-      appBarTheme:const AppBarTheme(backgroundColor:Color(0xFFF6F8FC),foregroundColor:Color(0xFF19243A),elevation:0,centerTitle:false,titleTextStyle:TextStyle(color:Color(0xFF19243A),fontSize:22,fontWeight:FontWeight.w800)),
-      cardTheme:CardThemeData(elevation:0,margin:EdgeInsets.zero,color:Colors.white,shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(18),side:const BorderSide(color:Color(0xFFE8ECF4)))),
-      navigationBarTheme:NavigationBarThemeData(backgroundColor:Colors.white,indicatorColor:const Color(0xFFE8EEFF),elevation:0,height:72,labelTextStyle:WidgetStateProperty.resolveWith((states)=>TextStyle(fontSize:11,fontWeight:states.contains(WidgetState.selected)?FontWeight.w800:FontWeight.w500))),
-      floatingActionButtonTheme:const FloatingActionButtonThemeData(backgroundColor:Color(0xFF315FE7),foregroundColor:Colors.white),
-      inputDecorationTheme:InputDecorationTheme(filled:true,fillColor:Colors.white,contentPadding:const EdgeInsets.symmetric(horizontal:16,vertical:14),border:OutlineInputBorder(borderRadius:BorderRadius.circular(14),borderSide:const BorderSide(color:Color(0xFFE0E6F0))),enabledBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(14),borderSide:const BorderSide(color:Color(0xFFE0E6F0))),focusedBorder:OutlineInputBorder(borderRadius:BorderRadius.circular(14),borderSide:const BorderSide(color:Color(0xFF4567D7),width:1.5))),
-    ),home:const LifeOsShell());
+
+  @override
+  Widget build(BuildContext context) {
+    const seed = Color(0xFF4567D7);
+    return MaterialApp(
+      title: 'LifeOS',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: seed, brightness: Brightness.light),
+        scaffoldBackgroundColor: const Color(0xFFF6F8FC),
+        canvasColor: const Color(0xFFF6F8FC),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFF6F8FC),
+          foregroundColor: Color(0xFF19243A),
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(color: Color(0xFF19243A), fontSize: 22, fontWeight: FontWeight.w800),
+        ),
+        cardTheme: CardThemeData(
+          elevation: 0,
+          margin: EdgeInsets.zero,
+          color: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: const BorderSide(color: Color(0xFFE8ECF4))),
+        ),
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: Colors.white,
+          indicatorColor: const Color(0xFFE8EEFF),
+          elevation: 0,
+          height: 72,
+          labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(fontSize: 11, fontWeight: states.contains(WidgetState.selected) ? FontWeight.w800 : FontWeight.w500)),
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(backgroundColor: Color(0xFF315FE7), foregroundColor: Colors.white),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE0E6F0))),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFE0E6F0))),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF4567D7), width: 1.5)),
+        ),
+      ),
+      home: const LifeOsShell(),
+    );
   }
 }
-class LifeOsShell extends StatefulWidget { const LifeOsShell({super.key}); @override State<LifeOsShell> createState()=>_LifeOsShellState(); }
+
+class LifeOsShell extends StatefulWidget {
+  const LifeOsShell({super.key});
+
+  @override
+  State<LifeOsShell> createState() => _LifeOsShellState();
+}
+
 class _LifeOsShellState extends State<LifeOsShell> {
-  int _index=0;
-  final _homeKey=GlobalKey<_HomeScreenState>();
-  final _performanceKey=GlobalKey<PerformanceScreenState>();
-  final _plannerKey=GlobalKey<PlannerScreenState>();
-  final _repository=LifeosRepository();
-  @override Widget build(BuildContext context){
-    final pages=<Widget>[
-      HomeScreen(key:_homeKey,repository:_repository,onNavigate:(index){setState(()=>_index=index);if(index==4)_plannerKey.currentState?.refreshData();}),
-      TasksScreen(repository:_repository),BrainVaultScreen(repository:_repository),const ProjectsScreen(),
-      PlannerScreen(key:_plannerKey,repository:_repository),PerformanceScreen(key:_performanceKey,repository:_repository),
-      QuickCaptureScreen(repository:_repository),const AiAssistantScreen(),
+  int _index = 0;
+  final _homeKey = GlobalKey<_HomeScreenState>();
+  final _performanceKey = GlobalKey<PerformanceScreenState>();
+  final _plannerKey = GlobalKey<PlannerScreenState>();
+  final _repository = LifeosRepository();
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = <Widget>[
+      HomeScreen(key: _homeKey, repository: _repository, onNavigate: (index) { setState(() => _index = index); if (index == 4) _plannerKey.currentState?.refreshData(); }),
+      TasksScreen(repository: _repository),
+      BrainVaultScreen(repository: _repository),
+      const ProjectsScreen(),
+      PlannerScreen(key: _plannerKey, repository: _repository),
+      PerformanceScreen(key: _performanceKey, repository: _repository),
+      QuickCaptureScreen(repository: _repository),
+      const AiAssistantScreen(),
     ];
-    return Scaffold(body:SafeArea(child:IndexedStack(index:_index,children:pages)),
-      floatingActionButton:_index==6?null:FloatingActionButton.small(tooltip:'Quick Capture',onPressed:()=>setState(()=>_index=6),child:const Icon(Icons.add_rounded)),
-      bottomNavigationBar:NavigationBar(selectedIndex:_index,onDestinationSelected:(value){setState(()=>_index=value);if(value==0)_homeKey.currentState?.refreshData();if(value==4)_plannerKey.currentState?.refreshData();if(value==5)_performanceKey.currentState?.refreshData();},destinations:const[
-        NavigationDestination(icon:Icon(Icons.space_dashboard_outlined),selectedIcon:Icon(Icons.space_dashboard),label:'Home'),
-        NavigationDestination(icon:Icon(Icons.checklist_outlined),selectedIcon:Icon(Icons.checklist),label:'Tasks'),
-        NavigationDestination(icon:Icon(Icons.auto_awesome_mosaic_outlined),selectedIcon:Icon(Icons.auto_awesome_mosaic),label:'Second Brain'),
-        NavigationDestination(icon:Icon(Icons.folder_outlined),selectedIcon:Icon(Icons.folder),label:'Projects'),
-        NavigationDestination(icon:Icon(Icons.calendar_month_outlined),selectedIcon:Icon(Icons.calendar_month),label:'Planner'),
-        NavigationDestination(icon:Icon(Icons.insights_outlined),selectedIcon:Icon(Icons.insights),label:'Growth'),
-        NavigationDestination(icon:Icon(Icons.add_circle_outline),selectedIcon:Icon(Icons.add_circle),label:'Capture'),
-        NavigationDestination(icon:Icon(Icons.auto_awesome_outlined),selectedIcon:Icon(Icons.auto_awesome),label:'AI'),
-      ]));
+    return Scaffold(
+      body: SafeArea(child: IndexedStack(index: _index, children: pages)),
+      floatingActionButton: _index == 6 ? null : FloatingActionButton.small(
+        tooltip: 'Quick Capture',
+        onPressed: () => setState(() => _index = 6),
+        child: const Icon(Icons.add_rounded),
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _index,
+        onDestinationSelected: (value) {
+          setState(() => _index = value);
+          if (value == 0) _homeKey.currentState?.refreshData();
+          if (value == 4) _plannerKey.currentState?.refreshData();
+          if (value == 5) _performanceKey.currentState?.refreshData();
+        },
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.space_dashboard_outlined), selectedIcon: Icon(Icons.space_dashboard), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.checklist_outlined), selectedIcon: Icon(Icons.checklist), label: 'Tasks'),
+          NavigationDestination(icon: Icon(Icons.auto_awesome_mosaic_outlined), selectedIcon: Icon(Icons.auto_awesome_mosaic), label: 'Second Brain'),
+          NavigationDestination(icon: Icon(Icons.folder_outlined), selectedIcon: Icon(Icons.folder), label: 'Projects'),
+          NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Planner'),
+          NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights), label: 'Growth'),
+          NavigationDestination(icon: Icon(Icons.add_circle_outline), selectedIcon: Icon(Icons.add_circle), label: 'Capture'),
+          NavigationDestination(icon: Icon(Icons.auto_awesome_outlined), selectedIcon: Icon(Icons.auto_awesome), label: 'AI'),
+        ],
+      ),
+    );
   }
+}
+
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key, required this.repository, required this.onNavigate});
+  final LifeosRepository repository;
+  final ValueChanged<int> onNavigate;
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late Future<Map<String, int>> _summary;
+  late Future<List<LifeTask>> _tasks;
+  late Future<List<Idea>> _ideas;
+
+  @override
+  void initState() { super.initState(); _load(); }
+
+  void _load() {
+    _summary = widget.repository.getTaskSummary();
+    _tasks = widget.repository.getTasks();
+    _ideas = widget.repository.getIdeas();
+  }
+
+  Future<void> refreshData() async {
+    setState(_load);
+    await Future.wait([_summary, _tasks, _ideas]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hour = DateTime.now().hour;
+    final greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    final now = DateTime.now();
+    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    final dateLabel = '${weekdays[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}';
+
+    return RefreshIndicator(
+      onRefresh: refreshData,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+        children: [
+          Row(children: [
+            Container(
+              width: 42, height: 42,
+              decoration: BoxDecoration(color: theme.colorScheme.primary.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(14)),
+              child: Icon(Icons.auto_awesome_rounded, color: theme.colorScheme.primary, size: 23),
+            ),
+            const SizedBox(width: 11),
+            const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('LifeOS', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+              Text('YOUR PERSONAL SPACE', style: TextStyle(fontSize: 9, letterSpacing: 1.35, fontWeight: FontWeight.w700, color: Color(0xFF7A8497))),
+            ])),
+            IconButton(
+              tooltip: 'Refresh dashboard',
+              onPressed: refreshData,
+              icon: const Icon(Icons.refresh_rounded),
+              style: IconButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF536176)),
+            ),
+          ]),
+          const SizedBox(height: 25),
+          Text(dateLabel.toUpperCase(), style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 1.2, fontWeight: FontWeight.w700, color: const Color(0xFF7B879A))),
+          const SizedBox(height: 7),
+          Text(greeting, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.9, color: const Color(0xFF19243A))),
+          const SizedBox(height: 4),
+          Text('Make space for what matters.', style: theme.textTheme.bodyLarge?.copyWith(color: const Color(0xFF6F7B8E))),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF315FE7), Color(0xFF2448B8)]),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [BoxShadow(color: const Color(0xFF315FE7).withValues(alpha: 0.18), blurRadius: 22, offset: const Offset(0, 9))],
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                const Expanded(child: Text('A little progress\nevery day.', style: TextStyle(color: Colors.white, fontSize: 23, height: 1.18, fontWeight: FontWeight.w800, letterSpacing: -0.5))),
+                Container(width: 54, height: 54, decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(18)), child: const Icon(Icons.trending_up_rounded, color: Colors.white, size: 29)),
+              ]),
+              const SizedBox(height: 18),
+              FutureBuilder<Map<String, int>>(
+                future: _summary,
+                builder: (context, snapshot) {
+                  final data = snapshot.data ?? const {'total': 0, 'completed': 0, 'open': 0};
+                  final total = data['completed']! + data['open']!;
+                  final progress = total == 0 ? 0.0 : data['completed']! / total;
+                  return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      const Text('YOUR TASK PROGRESS', style: TextStyle(color: Color(0xFFDCE5FF), fontSize: 10, letterSpacing: 1.1, fontWeight: FontWeight.w700)),
+                      Text('${(progress * 100).round()}%', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13)),
+                    ]),
+                    const SizedBox(height: 8),
+                    ClipRRect(borderRadius: BorderRadius.circular(10), child: LinearProgressIndicator(value: progress, minHeight: 7, backgroundColor: Colors.white.withValues(alpha: 0.22), valueColor: const AlwaysStoppedAnimation<Color>(Colors.white))),
+                    const SizedBox(height: 8),
+                    Text(total == 0 ? 'Start with one meaningful task.' : '${data['completed']} of $total tasks completed', style: const TextStyle(color: Color(0xFFE2E9FF), fontSize: 12)),
+                  ]);
+                },
+              ),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text('Your overview', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+            TextButton(onPressed: () => widget.onNavigate(1), child: const Text('View tasks')),
+          ]),
+          const SizedBox(height: 10),
+          FutureBuilder<Map<String, int>>(
+            future: _summary,
+            builder: (context, snapshot) {
+              final data = snapshot.data ?? const {'total': 0, 'completed': 0, 'open': 0};
+              return Row(children: [
+                Expanded(child: _StatCard(label: 'To do', value: '${data['open']}', icon: Icons.radio_button_unchecked_rounded)),
+                const SizedBox(width: 10),
+                Expanded(child: _StatCard(label: 'Completed', value: '${data['completed']}', icon: Icons.task_alt_rounded)),
+                const SizedBox(width: 10),
+                Expanded(child: FutureBuilder<List<Idea>>(future: _ideas, builder: (context, ideasSnapshot) => _StatCard(label: 'Ideas saved', value: '${ideasSnapshot.data?.length ?? 0}', icon: Icons.lightbulb_outline_rounded))),
+              ]);
+            },
+          ),
+          const SizedBox(height: 24),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text('Today’s focus', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+            TextButton(onPressed: () => widget.onNavigate(1), child: const Text('See all')),
+          ]),
+          const SizedBox(height: 8),
+          FutureBuilder<List<LifeTask>>(
+            future: _tasks,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) return const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()));
+              final tasks = (snapshot.data ?? []).where((task) => !task.isComplete).take(3).toList();
+              if (tasks.isEmpty) return const _EmptyState(icon: Icons.celebration_outlined, title: 'A clear space to begin', message: 'Add one task to give today a direction.');
+              return Column(children: tasks.map((task) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Card(child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                  leading: Container(width: 38, height: 38, decoration: BoxDecoration(color: const Color(0xFFEAF0FF), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.circle_outlined, color: Color(0xFF315FE7), size: 21)),
+                  title: Text(task.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  subtitle: Text(task.dueAt == null ? (task.notes.isEmpty ? 'Ready when you are' : task.notes) : 'Due ${task.dueAt!.day}/${task.dueAt!.month}/${task.dueAt!.year}', maxLines: 1, overflow: TextOverflow.ellipsis),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFF7B879A)),
+                  onTap: () => widget.onNavigate(1),
+                )),
+              )).toList());
+            },
+          ),
+          const SizedBox(height: 16),
+          Text('Quick capture', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+          const SizedBox(height: 4),
+          Text('Catch the thought. Keep the momentum.', style: theme.textTheme.bodyMedium?.copyWith(color: const Color(0xFF778397))),
+          const SizedBox(height: 12),
+          Row(children: [
+            Expanded(child: _QuickAction(icon: Icons.add_task_rounded, label: 'New task', onTap: () => widget.onNavigate(1))),
+            const SizedBox(width: 10),
+            Expanded(child: _QuickAction(icon: Icons.lightbulb_outline_rounded, label: 'Capture a note', onTap: () => widget.onNavigate(2))),
+          ]),
+          const SizedBox(height: 10),
+          _QuickAction(icon: Icons.calendar_month_rounded, label: 'Open Planner', onTap: () => widget.onNavigate(4)),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: const Color(0xFFEFF3FF), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFDCE5FF))),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Container(width: 38, height: 38, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF315FE7))),
+              const SizedBox(width: 12),
+              const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('One space for your life and ideas', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF24365D))),
+                SizedBox(height: 5),
+                Text('Plan your day, save creative sparks, and keep track of the work you finish.', style: TextStyle(color: Color(0xFF5D6D8A), height: 1.4, fontSize: 13)),
+              ])),
+            ]),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class TasksScreen extends StatefulWidget {
+  const TasksScreen({super.key, required this.repository});
+  final LifeosRepository repository;
+  @override
+  State<TasksScreen> createState() => _TasksScreenState();
+}
+
+class _TasksScreenState extends State<TasksScreen> {
+  final _searchController = TextEditingController();
+  bool _showArchived = false;
+  late Future<List<LifeTask>> _future;
+
+  @override
+  void initState() { super.initState(); _load(); }
+  @override
+  void dispose() { _searchController.dispose(); super.dispose(); }
+  void _load() => _future = widget.repository.getTasks(query: _searchController.text, includeArchived: _showArchived);
+  Future<void> _refresh() async { setState(_load); await _future; }
+
+  Future<void> _editTask([LifeTask? task]) async {
+    final result = await showDialog<_TaskDraft>(context: context, builder: (_) => _TaskDialog(task: task));
+    if (result == null) return;
+    try {
+      final id = await widget.repository.saveTask(id: task?.id, title: result.title, notes: result.notes, dueAt: result.dueAt, reminderAt: result.reminderAt);
+      if (result.reminderAt != null && !(task?.isComplete ?? false)) {
+        await ReminderService.instance.schedule(id: 1000000000 + id, title: result.title, body: 'Task reminder', at: result.reminderAt!);
+      } else {
+        await ReminderService.instance.cancelTask(id);
+      }
+      if (mounted) { setState(_load); _message(task == null ? 'Task added' : 'Task updated'); }
+    } catch (error) { if (mounted) _message(error.toString()); }
+  }
+
+  void _message(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+
+  Future<void> _delete(LifeTask task) async {
+    final confirm = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
+      title: const Text('Delete task?'), content: Text('“${task.title}” will be permanently deleted.'),
+      actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')), FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete'))],
+    ));
+    if (confirm != true) return;
+    await widget.repository.deleteTask(task.id);
+    await ReminderService.instance.cancelTask(task.id);
+    if (mounted) setState(_load);
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Tasks'), actions: [
+      IconButton(tooltip: _showArchived ? 'Show active tasks' : 'Show archived tasks', onPressed: () => setState(() { _showArchived = !_showArchived; _load(); }), icon: Icon(_showArchived ? Icons.inventory_2 : Icons.archive_outlined)),
+    ]),
+    floatingActionButton: FloatingActionButton.extended(onPressed: () => _editTask(), icon: const Icon(Icons.add), label: const Text('New task')),
+    body: Column(children: [
+      Padding(padding: const EdgeInsets.fromLTRB(16, 4, 16, 12), child: TextField(
+        controller: _searchController, onChanged: (_) => setState(_load),
+        decoration: InputDecoration(hintText: 'Search tasks', prefixIcon: const Icon(Icons.search), suffixIcon: _searchController.text.isEmpty ? null : IconButton(icon: const Icon(Icons.clear), onPressed: () { _searchController.clear(); setState(_load); }), filled: true, fillColor: Colors.white,
+      ))),
+      Expanded(child: FutureBuilder<List<LifeTask>>(future: _future, builder: (context, snapshot) {
+        if (snapshot.hasError) return Center(child: Text('Could not load tasks: ${snapshot.error}'));
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        final tasks = snapshot.data!;
+        if (tasks.isEmpty) return _EmptyState(icon: Icons.checklist, title: _showArchived ? 'No archived tasks' : 'No tasks yet', message: _showArchived ? 'Archived tasks will appear here.' : 'Create your first task to get started.');
+        return RefreshIndicator(onRefresh: _refresh, child: ListView.separated(padding: const EdgeInsets.fromLTRB(16, 0, 16, 90), itemCount: tasks.length, separatorBuilder: (_, __) => const SizedBox(height: 8), itemBuilder: (context, index) {
+          final task = tasks[index];
+          return Card(child: ListTile(
+            leading: _showArchived ? const Icon(Icons.archive_outlined) : Checkbox(value: task.isComplete, onChanged: (value) async {
+              final complete = value ?? false;
+              await widget.repository.setTaskComplete(task.id, complete);
+              if (complete) { await ReminderService.instance.cancelTask(task.id); }
+              else if (task.reminderAt != null) { await ReminderService.instance.schedule(id: 1000000000 + task.id, title: task.title, body: 'Task reminder', at: task.reminderAt!); }
+              if (mounted) setState(_load);
+            }),
+            title: Text(task.title, style: TextStyle(decoration: task.isComplete ? TextDecoration.lineThrough : null), maxLines: 2, overflow: TextOverflow.ellipsis),
+            subtitle: task.notes.isEmpty ? null : Text(task.notes, maxLines: 2, overflow: TextOverflow.ellipsis),
+            trailing: PopupMenuButton<String>(onSelected: (action) async {
+              if (action == 'edit') await _editTask(task);
+              if (action == 'archive') {
+                await widget.repository.archiveTask(task.id, !_showArchived);
+                if (_showArchived && task.reminderAt != null && !task.isComplete) {
+                  await ReminderService.instance.schedule(id: 1000000000 + task.id, title: task.title, body: 'Task reminder', at: task.reminderAt!);
+                } else {
+                  await ReminderService.instance.cancelTask(task.id);
+                }
+                if (mounted) setState(_load);
+              }
+              if (action == 'delete') await _delete(task);
+            }, itemBuilder: (_) => [
+              if (!_showArchived) const PopupMenuItem(value: 'edit', child: Text('Edit')),
+              PopupMenuItem(value: 'archive', child: Text(_showArchived ? 'Restore' : 'Archive')),
+              const PopupMenuItem(value: 'delete', child: Text('Delete')),
+            ]),
+          ));
+        }));
+      })),
+    ]),
+  );
+}
+
+class IdeasScreen extends StatefulWidget {
+  const IdeasScreen({super.key, required this.repository});
+  final LifeosRepository repository;
+  @override
+  State<IdeasScreen> createState() => _IdeasScreenState();
+}
+
+class _IdeasScreenState extends State<IdeasScreen> {
+  final _searchController = TextEditingController();
+  bool _showArchived = false;
+  late Future<List<Idea>> _future;
+  @override
+  void initState() { super.initState(); _load(); }
+  @override
+  void dispose() { _searchController.dispose(); super.dispose(); }
+  void _load() => _future = widget.repository.getIdeas(query: _searchController.text, includeArchived: _showArchived);
+
+  Future<void> _editIdea([Idea? idea]) async {
+    final titleController = TextEditingController(text: idea?.title ?? '');
+    final bodyController = TextEditingController(text: idea?.body ?? '');
+    final result = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
+      title: Text(idea == null ? 'Capture an idea' : 'Edit idea'),
+      content: SizedBox(width: 420, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: titleController, autofocus: true, textCapitalization: TextCapitalization.sentences, decoration: const InputDecoration(labelText: 'Title', hintText: 'What is the idea?')),
+        const SizedBox(height: 12), TextField(controller: bodyController, minLines: 3, maxLines: 6, textCapitalization: TextCapitalization.sentences, decoration: const InputDecoration(labelText: 'Details', hintText: 'Add context or next steps')),
+      ]))),
+      actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')), FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Save'))],
+    ));
+    if (result == true) {
+      try {
+        await widget.repository.saveIdea(id: idea?.id, title: titleController.text, body: bodyController.text);
+        if (mounted) { setState(_load); _message(idea == null ? 'Idea captured' : 'Idea updated'); }
+      } catch (error) { if (mounted) _message(error.toString()); }
+    }
+    titleController.dispose(); bodyController.dispose();
+  }
+
+  void _message(String message) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Idea vault'), actions: [IconButton(tooltip: 'Toggle archive', onPressed: () => setState(() { _showArchived = !_showArchived; _load(); }), icon: Icon(_showArchived ? Icons.inventory_2 : Icons.archive_outlined))]),
+    floatingActionButton: FloatingActionButton.extended(onPressed: () => _editIdea(), icon: const Icon(Icons.add), label: const Text('Capture idea')),
+    body: Column(children: [
+      Padding(padding: const EdgeInsets.fromLTRB(16, 4, 16, 12), child: TextField(controller: _searchController, onChanged: (_) => setState(_load), decoration: const InputDecoration(hintText: 'Search ideas', prefixIcon: Icon(Icons.search), filled: true, fillColor: Colors.white))),
+      Expanded(child: FutureBuilder<List<Idea>>(future: _future, builder: (context, snapshot) {
+        if (snapshot.hasError) return Center(child: Text('Could not load ideas: ${snapshot.error}'));
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        final ideas = snapshot.data!;
+        if (ideas.isEmpty) return const _EmptyState(icon: Icons.lightbulb_outline, title: 'Save the spark', message: 'Capture ideas before they disappear.');
+        return ListView.separated(padding: const EdgeInsets.fromLTRB(16, 0, 16, 90), itemCount: ideas.length, separatorBuilder: (_, __) => const SizedBox(height: 8), itemBuilder: (context, index) {
+          final idea = ideas[index];
+          return Card(child: ListTile(
+            leading: const CircleAvatar(child: Icon(Icons.lightbulb_outline)),
+            title: Text(idea.title, maxLines: 2, overflow: TextOverflow.ellipsis),
+            subtitle: idea.body.isEmpty ? null : Text(idea.body, maxLines: 3, overflow: TextOverflow.ellipsis),
+            onTap: () => _editIdea(idea),
+            trailing: PopupMenuButton<String>(onSelected: (action) async {
+              if (action == 'edit') await _editIdea(idea);
+              if (action == 'archive') { await widget.repository.archiveIdea(idea.id, !_showArchived); if (mounted) setState(_load); }
+              if (action == 'delete') { await widget.repository.deleteIdea(idea.id); if (mounted) setState(_load); }
+            }, itemBuilder: (_) => [
+              const PopupMenuItem(value: 'edit', child: Text('Edit')),
+              PopupMenuItem(value: 'archive', child: Text(_showArchived ? 'Restore' : 'Archive')),
+              const PopupMenuItem(value: 'delete', child: Text('Delete')),
+            ]),
+          ));
+        });
+      })),
+    ]),
+  );
+}
+
+class _TaskDraft {
+  const _TaskDraft(this.title, this.notes, this.dueAt, this.reminderAt);
+  final String title;
+  final String notes;
+  final DateTime? dueAt;
+  final DateTime? reminderAt;
+}
+
+class _TaskDialog extends StatefulWidget {
+  const _TaskDialog({this.task});
+  final LifeTask? task;
+  @override
+  State<_TaskDialog> createState() => _TaskDialogState();
+}
+
+class _TaskDialogState extends State<_TaskDialog> {
+  late final TextEditingController _title;
+  late final TextEditingController _notes;
+  DateTime? _dueAt;
+  DateTime? _reminderAt;
+  @override
+  void initState() { super.initState(); _title = TextEditingController(text: widget.task?.title ?? ''); _notes = TextEditingController(text: widget.task?.notes ?? ''); _dueAt = widget.task?.dueAt; _reminderAt = widget.task?.reminderAt; }
+  @override
+  void dispose() { _title.dispose(); _notes.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.task == null ? 'New task' : 'Edit task'),
+    content: SizedBox(width: 420, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+      TextField(controller: _title, autofocus: true, textCapitalization: TextCapitalization.sentences, decoration: const InputDecoration(labelText: 'Task title', hintText: 'What needs to get done?')),
+      const SizedBox(height: 12), TextField(controller: _notes, minLines: 2, maxLines: 4, textCapitalization: TextCapitalization.sentences, decoration: const InputDecoration(labelText: 'Notes (optional)')),
+      const SizedBox(height: 12), Align(alignment: Alignment.centerLeft, child: Wrap(spacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
+        OutlinedButton.icon(onPressed: () async { final picked = await showDatePicker(context: context, initialDate: _dueAt ?? DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2100)); if (picked != null && mounted) setState(() => _dueAt = DateTime(picked.year, picked.month, picked.day)); }, icon: const Icon(Icons.calendar_today), label: Text(_dueAt == null ? 'Set due date' : '${_dueAt!.day}/${_dueAt!.month}/${_dueAt!.year}')),
+        if (_dueAt != null) IconButton(tooltip: 'Clear due date', onPressed: () => setState(() => _dueAt = null), icon: const Icon(Icons.close)),
+      ])),
+      const SizedBox(height: 12),
+      Align(alignment: Alignment.centerLeft, child: Wrap(spacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
+        OutlinedButton.icon(
+          onPressed: () async {
+            final initial = _reminderAt ?? _dueAt ?? DateTime.now().add(const Duration(hours: 1));
+            final date = await showDatePicker(context: context, initialDate: initial, firstDate: DateTime(2020), lastDate: DateTime(2100));
+            if (date == null || !context.mounted) return;
+            final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(initial));
+            if (time != null && context.mounted) setState(() => _reminderAt = DateTime(date.year, date.month, date.day, time.hour, time.minute));
+          },
+          icon: const Icon(Icons.notifications_active_outlined),
+          label: Text(_reminderAt == null ? 'Set reminder' : 'Reminder ${_reminderAt!.day}/${_reminderAt!.month} ${_reminderAt!.hour.toString().padLeft(2, '0')}:${_reminderAt!.minute.toString().padLeft(2, '0')}'),
+        ),
+        if (_reminderAt != null) IconButton(tooltip: 'Clear reminder', onPressed: () => setState(() => _reminderAt = null), icon: const Icon(Icons.close)),
+      ])),
+    ]))),
+    actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')), FilledButton(onPressed: () {
+      if (_title.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a task title.'))); return; }
+      Navigator.pop(context, _TaskDraft(_title.text, _notes.text, _dueAt, _reminderAt));
+    }, child: const Text('Save'))],
+  );
+}
+
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({required this.label, required this.value, required this.icon});
+  final String label;
+  final String value;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(12, 14, 8, 14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(width: 32, height: 32, decoration: BoxDecoration(color: const Color(0xFFEAF0FF), borderRadius: BorderRadius.circular(10)), child: Icon(icon, size: 18, color: const Color(0xFF315FE7))),
+        const SizedBox(height: 12),
+        Text(value, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5, color: const Color(0xFF19243A))),
+        const SizedBox(height: 2),
+        Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: const Color(0xFF758197), fontWeight: FontWeight.w600)),
+      ]),
+    ),
+  );
+}
+
+
+class _QuickAction extends StatelessWidget {
+  const _QuickAction({required this.icon, required this.label, required this.onTap});
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+        child: Row(children: [
+          Container(width: 38, height: 38, decoration: BoxDecoration(color: const Color(0xFFEAF0FF), borderRadius: BorderRadius.circular(12)), child: Icon(icon, color: const Color(0xFF315FE7), size: 21)),
+          const SizedBox(width: 11),
+          Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF29354B)))),
+          const Icon(Icons.arrow_forward_rounded, size: 17, color: Color(0xFF8792A5)),
+        ]),
+      ),
+    ),
+  );
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.icon, required this.title, required this.message});
+  final IconData icon; final String title; final String message;
+  @override
+  Widget build(BuildContext context) => Center(child: Padding(padding: const EdgeInsets.all(32), child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(icon, size: 48, color: Theme.of(context).colorScheme.primary), const SizedBox(height: 12), Text(title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)), const SizedBox(height: 6), Text(message, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.black54))])));
 }
