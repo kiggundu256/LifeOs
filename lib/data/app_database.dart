@@ -85,6 +85,8 @@ class AppDatabase {
         await db.execute('''CREATE TABLE project_milestones (id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE, title TEXT NOT NULL CHECK(length(trim(title)) > 0), due_at INTEGER, is_complete INTEGER NOT NULL DEFAULT 0 CHECK(is_complete IN (0,1)), created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)''');
         await db.execute('CREATE INDEX idx_project_milestones_project ON project_milestones(project_id, is_complete)');
         await db.execute('''CREATE TABLE project_notes (project_id INTEGER PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE, body TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL)''');
+        await db.execute('''CREATE TABLE project_attachments (id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE, display_name TEXT NOT NULL, stored_path TEXT NOT NULL, mime_type TEXT, size_bytes INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL)''');
+        await db.execute('CREATE INDEX idx_project_attachments_project ON project_attachments(project_id)');
         await db.execute('CREATE INDEX idx_ideas_archived ON ideas(is_archived)');
         await db.execute('CREATE INDEX idx_ideas_pinned ON ideas(is_pinned, updated_at)');
         await db.execute('''
@@ -193,6 +195,8 @@ class AppDatabase {
           await db.execute('''CREATE TABLE project_milestones (id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE, title TEXT NOT NULL CHECK(length(trim(title)) > 0), due_at INTEGER, is_complete INTEGER NOT NULL DEFAULT 0 CHECK(is_complete IN (0,1)), created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)''');
           await db.execute('CREATE INDEX idx_project_milestones_project ON project_milestones(project_id, is_complete)');
           await db.execute('''CREATE TABLE project_notes (project_id INTEGER PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE, body TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL)''');
+          await db.execute('''CREATE TABLE project_attachments (id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE, display_name TEXT NOT NULL, stored_path TEXT NOT NULL, mime_type TEXT, size_bytes INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL)''');
+          await db.execute('CREATE INDEX idx_project_attachments_project ON project_attachments(project_id)');
         }
       },
     );
