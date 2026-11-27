@@ -67,7 +67,7 @@ class AppDatabase {
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
-        await db.execute('''
+          await db.execute('''
           CREATE TABLE task_completion_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             task_id INTEGER NOT NULL,
@@ -75,8 +75,8 @@ class AppDatabase {
             action TEXT NOT NULL CHECK(action IN ('completed', 'reopened')),
             occurred_at INTEGER NOT NULL
           )
-        ''');
-        await db.execute('CREATE INDEX idx_task_completion_history_date ON task_completion_history(occurred_at)');
+          ''');
+          await db.execute('CREATE INDEX idx_task_completion_history_date ON task_completion_history(occurred_at)');
         }
       },
     );
