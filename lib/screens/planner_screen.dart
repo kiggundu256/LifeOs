@@ -15,25 +15,25 @@ class PlannerScreen extends StatefulWidget {
 
 class PlannerScreenState extends State<PlannerScreen> {
   DateTime selected = DateTime.now();
-  _View view = _View.week;
+  _View _view = _View.week;
   bool _showArchived = false;
-  late Future<_PlannerData> future;
+  late Future<_PlannerData> _future;
 
   DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
   DateTime get _from {
-    if (view == _View.month) {
+    if (_view == _View.month) {
       final first = DateTime(selected.year, selected.month, 1);
       return first.subtract(Duration(days: first.weekday - 1));
     }
-    if (view == _View.week) return _day(selected).subtract(Duration(days: selected.weekday - 1));
+    if (_view == _View.week) return _day(selected).subtract(Duration(days: selected.weekday - 1));
     return _day(selected);
   }
-  DateTime get _to => _from.add(Duration(days: view == _View.month ? 42 : view == _View.week ? 7 : 1));
+  DateTime get _to => _from.add(Duration(days: _view == _View.month ? 42 : _view == _View.week ? 7 : 1));
 
   @override
   void initState() { super.initState(); _load(); _syncReminders(); }
   void _load() {
-    future = Future.wait([
+    _future = Future.wait([
       widget.repository.getTasksDueBetween(_from, _to.add(const Duration(days: 90))),
       widget.repository.getEvents(includeArchived: true, from: _showArchived ? null : _from.subtract(const Duration(days: 370)), to: _showArchived ? null : _to.add(const Duration(days: 90))),
     ]).then((v) => _PlannerData(v[0] as List<LifeTask>, v[1] as List<Map<String, Object?>>));
@@ -78,10 +78,10 @@ class PlannerScreenState extends State<PlannerScreen> {
     }
   }
 
-  Future<void> _refresh() async { setState(_load); await future; }
+  Future<void> _refresh() async { setState(_load); await _future; }
   Future<void> refreshData() => _refresh();
   void _navigate(int amount) => setState(() {
-    selected = view == _View.month ? DateTime(selected.year, selected.month + amount, 1) : selected.add(Duration(days: amount * (view == _View.week ? 7 : 1)));
+    selected = _view == _View.month ? DateTime(selected.year, selected.month + amount, 1) : selected.add(Duration(days: amount * (_view == _View.week ? 7 : 1)));
     _load();
   });
 
@@ -167,7 +167,7 @@ class PlannerScreenState extends State<PlannerScreen> {
       IconButton(tooltip: 'Today', onPressed: () => setState(() { selected = DateTime.now(); _load(); }), icon: const Icon(Icons.today_outlined)),
     ]),
     floatingActionButton: _showArchived ? null : FloatingActionButton.extended(onPressed: () => _edit(), icon: const Icon(Icons.add), label: const Text('New event')),
-    body: FutureBuilder<_PlannerData>(future: future, builder: (context,snapshot) {
+    body: FutureBuilder<_PlannerData>(_future: _future, builder: (context,snapshot) {
       if (snapshot.hasError) return Center(child: Text('Planner could not load: ${snapshot.error}'));
       if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
       final data = snapshot.data!;
@@ -178,7 +178,7 @@ class PlannerScreenState extends State<PlannerScreen> {
       return RefreshIndicator(onRefresh: _refresh, child: ListView(padding: const EdgeInsets.fromLTRB(16,4,16,100), children: [
         Row(children: [
           IconButton(onPressed: () => _navigate(-1), icon: const Icon(Icons.chevron_left)),
-          Expanded(child: Text(view == _View.day ? _fullDate(selected) : _month(selected), textAlign: TextAlign.center, style: const TextStyle(fontSize:18,fontWeight:FontWeight.w800))),
+          Expanded(child: Text(_view == _View.day ? _fullDate(selected) : _month(selected), textAlign: TextAlign.center, style: const TextStyle(fontSize:18,fontWeight:FontWeight.w800))),
           IconButton(onPressed: () => _navigate(1), icon: const Icon(Icons.chevron_right)),
         ]),
         const SizedBox(height:10),
@@ -186,11 +186,11 @@ class PlannerScreenState extends State<PlannerScreen> {
           ButtonSegment(value:_View.day,label:Text('Day'),icon:Icon(Icons.view_day_outlined)),
           ButtonSegment(value:_View.week,label:Text('Week'),icon:Icon(Icons.view_week_outlined)),
           ButtonSegment(value:_View.month,label:Text('Month'),icon:Icon(Icons.calendar_month_outlined)),
-        ], selected:{view}, onSelectionChanged:(v)=>setState(() { view=v.first; _load(); })),
+        ], selected:{_view}, onSelectionChanged:(v)=>setState(() { _view=v.first; _load(); })),
         const SizedBox(height:14),
-        if (view == _View.week) _week(events,data.tasks),
-        if (view == _View.month) _monthGrid(events,data.tasks),
-        if (view == _View.day) _dayBanner(),
+        if (_view == _View.week) _week(events,data.tasks),
+        if (_view == _View.month) _monthGrid(events,data.tasks),
+        if (_view == _View.day) _dayBanner(),
         const SizedBox(height:20),
         Row(children: [
           const Expanded(child: Text('Your schedule',style:TextStyle(fontSize:18,fontWeight:FontWeight.w800))),
