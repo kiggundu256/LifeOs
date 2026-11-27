@@ -37,7 +37,7 @@ jobs:
           content = manifest.read_text()
           permission = '    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />'
           if permission not in content:
-              content = content.replace('    <application', permission + '\\n    <application', 1)
+              content = content.replace('    <application', permission + '\n    <application', 1)
           receivers = """        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
                   <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
                       <intent-filter>
@@ -48,7 +48,7 @@ jobs:
                       </intent-filter>
                   </receiver>"""
           if "ScheduledNotificationBootReceiver" not in content:
-              content = content.replace('</application>', receivers + '\\n    </application>', 1)
+              content = content.replace('</application>', receivers + '\n    </application>', 1)
           manifest.write_text(content)
           PY
       - name: Remove generated placeholder widget test
