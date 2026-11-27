@@ -12,9 +12,24 @@ class AppDatabase {
     final dbPath = await getDatabasesPath();
     _database = await openDatabase(
       p.join(dbPath, 'lifeos.db'),
-      version: 4,
+      version: 5,
       onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: (db, version) async {
+        await db.execute('''
+          CREATE TABLE projects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL CHECK(length(trim(title)) > 0),
+            description TEXT NOT NULL DEFAULT '',
+            objective TEXT NOT NULL DEFAULT '',
+            priority TEXT NOT NULL DEFAULT 'medium' CHECK(priority IN ('low','medium','high')),
+            status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','on_hold','completed')),
+            start_at INTEGER,
+            due_at INTEGER,
+            is_archived INTEGER NOT NULL DEFAULT 0 CHECK(is_archived IN (0,1)),
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+          )
+        ''');
         await db.execute('''
           CREATE TABLE tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,6 +39,7 @@ class AppDatabase {
             is_archived INTEGER NOT NULL DEFAULT 0 CHECK(is_archived IN (0, 1)),
             due_at INTEGER,
             reminder_at INTEGER,
+            project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
             created_at INTEGER NOT NULL,
             updated_at INTEGER NOT NULL
           )
@@ -65,6 +81,10 @@ class AppDatabase {
           )
         ''');
         await db.execute('CREATE INDEX idx_tasks_status ON tasks(is_complete, is_archived)');
+        await db.execute('CREATE INDEX idx_tasks_project ON tasks(project_id, is_archived, is_complete)');
+        await db.execute('''CREATE TABLE project_milestones (id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE, title TEXT NOT NULL CHECK(length(trim(title)) > 0), due_at INTEGER, is_complete INTEGER NOT NULL DEFAULT 0 CHECK(is_complete IN (0,1)), created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)''');
+        await db.execute('CREATE INDEX idx_project_milestones_project ON project_milestones(project_id, is_complete)');
+        await db.execute('''CREATE TABLE project_notes (project_id INTEGER PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE, body TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL)''');
         await db.execute('CREATE INDEX idx_ideas_archived ON ideas(is_archived)');
         await db.execute('CREATE INDEX idx_ideas_pinned ON ideas(is_pinned, updated_at)');
         await db.execute('''
@@ -165,6 +185,14 @@ class AppDatabase {
           await db.execute('ALTER TABLE tasks ADD COLUMN reminder_at INTEGER');
           await db.execute('ALTER TABLE events ADD COLUMN reminder_minutes INTEGER NOT NULL DEFAULT 0');
           await db.execute('CREATE INDEX idx_tasks_due ON tasks(due_at)');
+        }
+        if (oldVersion < 5) {
+          await db.execute('''CREATE TABLE projects (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL CHECK(length(trim(title)) > 0), description TEXT NOT NULL DEFAULT '', objective TEXT NOT NULL DEFAULT '', priority TEXT NOT NULL DEFAULT 'medium' CHECK(priority IN ('low','medium','high')), status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','on_hold','completed')), start_at INTEGER, due_at INTEGER, is_archived INTEGER NOT NULL DEFAULT 0 CHECK(is_archived IN (0,1)), created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)''');
+          await db.execute('ALTER TABLE tasks ADD COLUMN project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL');
+          await db.execute('CREATE INDEX idx_tasks_project ON tasks(project_id, is_archived, is_complete)');
+          await db.execute('''CREATE TABLE project_milestones (id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE, title TEXT NOT NULL CHECK(length(trim(title)) > 0), due_at INTEGER, is_complete INTEGER NOT NULL DEFAULT 0 CHECK(is_complete IN (0,1)), created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)''');
+          await db.execute('CREATE INDEX idx_project_milestones_project ON project_milestones(project_id, is_complete)');
+          await db.execute('''CREATE TABLE project_notes (project_id INTEGER PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE, body TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL)''');
         }
       },
     );
