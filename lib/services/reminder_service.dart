@@ -7,6 +7,7 @@ class ReminderService {
   static final ReminderService instance = ReminderService._();
   final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
   bool _ready = false;
+  bool _permissionChecked = false;
 
   Future<void> initialize({bool requestPermission = false}) async {
     if (!_ready) {
@@ -15,7 +16,8 @@ class ReminderService {
       await _plugin.initialize(settings);
       _ready = true;
     }
-    if (requestPermission) {
+    if (requestPermission && !_permissionChecked) {
+      _permissionChecked = true;
       final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       await android?.requestNotificationsPermission();
     }
